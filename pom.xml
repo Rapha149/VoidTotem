@@ -5,18 +5,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.rapha149.voidtotem</groupId>
-    <artifactId>VoidTotem</artifactId>
+    <artifactId>VoidTotem-parent</artifactId>
     <version>1.0</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
-    <name>VoidTotem</name>
+    <modules>
+        <module>plugin</module>
+        <module>abstraction</module>
+        <module>1_13_R1</module>
+    </modules>
 
-    <description>Use a totem to save you from the void!</description>
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <url>https://github.com/Rapha149/VoidTotem</url>
 
     <build>
         <plugins>
@@ -46,31 +48,16 @@
                 </executions>
             </plugin>
         </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
     </build>
 
     <repositories>
         <repository>
-            <id>spigotmc-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+            <id>nms-repo</id>
+            <url>https://repo.codemc.org/repository/nms/</url>
         </repository>
         <repository>
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
     </repositories>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.13.2-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 </project>
