@@ -1,23 +1,48 @@
 package de.rapha149.voidtotem;
 
+import de.rapha149.voidtotem.Config.ItemData;
+import de.rapha149.voidtotem.Config.ItemData.RecipeData;
+import de.rapha149.voidtotem.Config.ItemData.ResultData;
 import de.rapha149.voidtotem.Metrics.AdvancedPie;
 import de.rapha149.voidtotem.Metrics.DrilldownPie;
 import de.rapha149.voidtotem.Metrics.SimplePie;
+import de.rapha149.voidtotem.version.VersionWrapper;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public final class VoidTotem extends JavaPlugin {
 
+    private final NamespacedKey RECIPE_KEY = new NamespacedKey(this, "void_totem");
+
     private static VoidTotem instance;
+    public VersionWrapper wrapper;
 
     @Override
     public void onEnable() {
         instance = this;
+
+        String nmsVersion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3].substring(1);
+        try {
+            wrapper = (VersionWrapper) Class.forName(VersionWrapper.class.getPackage().getName() + ".Wrapper" + nmsVersion).newInstance();
+        } catch (IllegalAccessException | InstantiationException e) {
+            getLogger().severe("Failed to load support for server version \"" + nmsVersion + "\"");
+            getLogger().severe("Custom recipes will not work.");
+        } catch (ClassNotFoundException e) {
+            getLogger().severe("VoidTotem does not fully support the server version \"" + nmsVersion + "\"");
+            getLogger().severe("Custom recipes will not work.");
+        }
 
         try {
             Config.load();
@@ -26,7 +51,7 @@ public final class VoidTotem extends JavaPlugin {
             getLogger().severe("Failed to load config.");
             getServer().getPluginManager().disablePlugin(this);
         }
-        
+
         loadMetrics();
 
         if (Config.get().checkForUpdates) {
@@ -47,7 +72,7 @@ public final class VoidTotem extends JavaPlugin {
     public static VoidTotem getInstance() {
         return instance;
     }
-    
+
     private void loadMetrics() {
         Metrics metrics = new Metrics(this, 13802);
         metrics.addCustomChart(new DrilldownPie("check_for_updates", () -> {
@@ -97,10 +122,41 @@ public final class VoidTotem extends JavaPlugin {
             Map<String, Map<String, Integer>> map = new HashMap<>();
             Map<String, Integer> entry = new HashMap<>();
             Material mat = Material.getMaterial(Config.get().item.result.item.toUpperCase());
-            if(mat != null)
+            if (mat != null)
                 entry.put(mat.toString().toLowerCase(), 1);
             map.put(String.valueOf(Config.get().item.customRecipe), entry);
             return map;
         }));
+    }
+
+    public void loadRecipe() {
+        Iterator<Recipe> iterator = Bukkit.recipeIterator();
+        while (iterator.hasNext()) {
+            Recipe recipe = iterator.next();
+            if (recipe instanceof ShapelessRecipe) {
+                if (((ShapelessRecipe) recipe).getKey().equals(RECIPE_KEY))
+                    iterator.remove();
+            } else if (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(RECIPE_KEY))
+                iterator.remove();
+        }
+
+        ItemData itemData = Config.get().item;
+        if (itemData.customRecipe && itemData.valid && wrapper != null) {
+            ResultData resultData = itemData.result;
+            ItemStack result = wrapper.addIdentifier(wrapper.applyNBT(new ItemStack(Material.getMaterial(resultData.item.toUpperCase()),
+                    resultData.count), resultData.nbt));
+
+            RecipeData recipeData = itemData.recipe;
+            if(!recipeData.shaped) {
+                ShapelessRecipe recipe = new ShapelessRecipe(RECIPE_KEY, result);
+                recipeData.shapelessIngredients.forEach(ingredient -> recipe.addIngredient(Material.getMaterial(ingredient.toUpperCase())));
+                Bukkit.addRecipe(recipe);
+            } else {
+                ShapedRecipe recipe = new ShapedRecipe(RECIPE_KEY, result);
+                recipe.shape(recipeData.shapedRows);
+                recipeData.shapedIngredients.forEach((c, ingredient) -> recipe.setIngredient(c, Material.getMaterial(ingredient.toUpperCase())));
+                Bukkit.addRecipe(recipe);
+            }
+        }
     }
 }

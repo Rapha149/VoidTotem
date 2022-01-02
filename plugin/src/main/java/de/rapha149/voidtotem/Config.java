@@ -1,6 +1,6 @@
 package de.rapha149.voidtotem;
 
-import de.rapha149.voidtotem.Config.Item.Recipe;
+import de.rapha149.voidtotem.Config.ItemData.RecipeData;
 import org.bukkit.Material;
 import org.bukkit.potion.PotionEffectType;
 import org.yaml.snakeyaml.DumperOptions;
@@ -70,21 +70,26 @@ public class Config {
 
         Logger logger = VoidTotem.getInstance().getLogger();
         config.effects.list.forEach(effect -> {
-            if (PotionEffectType.getById(effect.id) == null)
+            if (PotionEffectType.getById(effect.id) == null) {
                 logger.warning("There's no potion effect with the id \"" + effect.id + "\"");
+                effect.valid = false;
+            }
         });
 
-        Item item = config.item;
+        ItemData item = config.item;
         if (item.customRecipe) {
             String resultItem = config.item.result.item;
-            if (Material.getMaterial(resultItem.toUpperCase()) == null)
+            if (Material.getMaterial(resultItem.toUpperCase()) == null) {
                 logger.warning("The result item \"" + resultItem + "\" does not exist.");
+                item.valid = false;
+            }
 
-
-            Recipe recipe = item.recipe;
+            RecipeData recipe = item.recipe;
             (recipe.shaped ? recipe.shapedIngredients.values() : recipe.shapelessIngredients).forEach(ingredient -> {
-                if (Material.getMaterial(ingredient.toUpperCase()) == null)
+                if (Material.getMaterial(ingredient.toUpperCase()) == null) {
                     logger.warning("The ingredient item \"" + ingredient + "\" does not exist.");
+                    item.valid = false;
+                }
             });
         }
     }
@@ -96,36 +101,38 @@ public class Config {
     public boolean checkForUpdates = true;
     public double healthTrigger = 0;
     public int searchDistance = 100;
-    public Randomization randomization = new Randomization();
-    public Effects effects = new Effects();
-    public Animation animation = new Animation();
-    public Item item = new Item();
+    public RandomizationData randomization = new RandomizationData();
+    public EffectsData effects = new EffectsData();
+    public AnimationData animation = new AnimationData();
+    public ItemData item = new ItemData();
 
-    public class Randomization {
+    public class RandomizationData {
 
         public boolean enabled = true;
         public int distanceStack = 10;
         public boolean randomizeZeroDistance = true;
     }
 
-    public class Effects {
+    public class EffectsData {
 
         public boolean restoreFoodLevel = false;
         public boolean removeExistingEffects = true;
-        public List<Effect> list = Arrays.asList(new Effect(PotionEffectType.REGENERATION.getId(), 45, 1),
-                new Effect(PotionEffectType.FIRE_RESISTANCE.getId(), 40, 0),
-                new Effect(PotionEffectType.ABSORPTION.getId(), 5, 1));
+        public List<EffectData> list = Arrays.asList(new EffectData(PotionEffectType.REGENERATION.getId(), 45, 1),
+                new EffectData(PotionEffectType.FIRE_RESISTANCE.getId(), 40, 0),
+                new EffectData(PotionEffectType.ABSORPTION.getId(), 5, 1));
 
-        public class Effect {
+        public class EffectData {
 
             public int id = 1;
             public int duration = 30;
             public int amplifier = 0;
 
-            public Effect() {
+            public transient boolean valid = true;
+
+            public EffectData() {
             }
 
-            Effect(int id, int duration, int amplifier) {
+            EffectData(int id, int duration, int amplifier) {
                 this.id = id;
                 this.duration = duration;
                 this.amplifier = amplifier;
@@ -133,7 +140,7 @@ public class Config {
         }
     }
 
-    public class Animation {
+    public class AnimationData {
 
         public boolean teleportParticles = true;
         public boolean teleportSound = false;
@@ -141,25 +148,27 @@ public class Config {
         public boolean totemAnimation = true;
     }
 
-    public class Item {
+    public class ItemData {
 
         public boolean hasToBeInHand = true;
         public boolean customRecipe = false;
-        public Result result = new Result();
-        public Recipe recipe = new Recipe();
+        public ResultData result = new ResultData();
+        public RecipeData recipe = new RecipeData();
 
-        public class Result {
+        public transient boolean valid = true;
+
+        public class ResultData {
 
             public String item = "totem_of_undying";
             public int count = 1;
             public String nbt = "{display: {Name: '{\"text\": \"§7Void §eTotem\"}'}, HideFlags:1, Enchantments:[{id:\"minecraft:unbreaking\",lvl:1}]}";
         }
 
-        public class Recipe {
+        public class RecipeData {
 
             public boolean shaped = true;
             public List<String> shapelessIngredients = Arrays.asList("totem_of_undying", "ender_pearl", "chorus_fruit");
-            public List<String> shapedRows = Arrays.asList("cdc", "ete", "cdc");
+            public String[] shapedRows = new String[]{"cdc", "ete", "cdc"};
             public Map<Character, String> shapedIngredients = new HashMap<>();
 
             {
