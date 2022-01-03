@@ -7,14 +7,16 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
-import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,23 +29,9 @@ public class Config {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(FlowStyle.BLOCK);
         options.setPrettyFlow(true);
-        Yaml yaml = new Yaml(new CustomClassLoaderConstructor(VoidTotem.getInstance().getClass().getClassLoader()), new Representer() {
-            @Override
-            protected Set<Property> getProperties(Class<?> type) {
-                List<Property> propsList = new ArrayList<>(super.getProperties(type));
-                propsList.forEach(property -> VoidTotem.getInstance().getLogger().info(property.getName() + " | " + property.getType().getCanonicalName()));
-                /*propsList.sort((p1, p2) -> {
-                    if (p1.getType().getCanonicalName().contains("util") && !p2.getType().getCanonicalName().contains("util"))
-                        return 1;
-                    else if (p2.getName().endsWith("Name") || p2.getName().equalsIgnoreCase("name"))
-                        return 1;
-                    else
-                        return -1;
-                });*/
-
-                return new LinkedHashSet<>(propsList);
-            }
-        }, options);
+        Representer representer = new Representer();
+        representer.setPropertyUtils(new CustomPropertyUtils());
+        Yaml yaml = new Yaml(new CustomClassLoaderConstructor(VoidTotem.getInstance().getClass().getClassLoader()), representer, options);
 
         File file = new File(VoidTotem.getInstance().getDataFolder(), "config.yml");
         if (file.exists())
@@ -106,14 +94,14 @@ public class Config {
     public AnimationData animation = new AnimationData();
     public ItemData item = new ItemData();
 
-    public class RandomizationData {
+    public static class RandomizationData {
 
         public boolean enabled = true;
         public int distanceStack = 10;
         public boolean randomizeZeroDistance = true;
     }
 
-    public class EffectsData {
+    public static class EffectsData {
 
         public boolean restoreFoodLevel = false;
         public boolean removeExistingEffects = true;
@@ -121,7 +109,7 @@ public class Config {
                 new EffectData(PotionEffectType.FIRE_RESISTANCE.getId(), 40, 0),
                 new EffectData(PotionEffectType.ABSORPTION.getId(), 5, 1));
 
-        public class EffectData {
+        public static class EffectData {
 
             public int id = 1;
             public int duration = 30;
@@ -140,7 +128,7 @@ public class Config {
         }
     }
 
-    public class AnimationData {
+    public static class AnimationData {
 
         public boolean teleportParticles = true;
         public boolean teleportSound = false;
@@ -148,7 +136,7 @@ public class Config {
         public boolean totemAnimation = true;
     }
 
-    public class ItemData {
+    public static class ItemData {
 
         public boolean hasToBeInHand = true;
         public boolean customRecipe = false;
@@ -157,14 +145,14 @@ public class Config {
 
         public transient boolean valid = true;
 
-        public class ResultData {
+        public static class ResultData {
 
             public String item = "totem_of_undying";
             public int count = 1;
             public String nbt = "{display: {Name: '{\"text\": \"§7Void §eTotem\"}'}, HideFlags:1, Enchantments:[{id:\"minecraft:unbreaking\",lvl:1}]}";
         }
 
-        public class RecipeData {
+        public static class RecipeData {
 
             public boolean shaped = true;
             public List<String> shapelessIngredients = Arrays.asList("totem_of_undying", "ender_pearl", "chorus_fruit");
