@@ -37,11 +37,9 @@ public final class VoidTotem extends JavaPlugin {
         try {
             wrapper = (VersionWrapper) Class.forName(VersionWrapper.class.getPackage().getName() + ".Wrapper" + nmsVersion).newInstance();
         } catch (IllegalAccessException | InstantiationException e) {
-            getLogger().severe("Failed to load support for server version \"" + nmsVersion + "\"");
-            getLogger().severe("Custom recipes will not work.");
+            throw new IllegalStateException("Failed to load support for server version \"" + nmsVersion + "\"");
         } catch (ClassNotFoundException e) {
-            getLogger().severe("VoidTotem does not fully support the server version \"" + nmsVersion + "\"");
-            getLogger().severe("Custom recipes will not work.");
+            throw new IllegalStateException("VoidTotem does not fully support the server version \"" + nmsVersion + "\"");
         }
 
         try {
