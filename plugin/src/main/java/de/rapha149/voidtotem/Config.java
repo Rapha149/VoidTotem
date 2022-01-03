@@ -13,17 +13,38 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Config {
 
+    private static Map<String, String> comments = new HashMap<>();
     private static Config config;
+
+    static {
+        comments.put("checkForUpdates", "Whether to check for updates on enabling.");
+        comments.put("healthTrigger", "If the health of the player is be below or equal to this, the totem will try to resurrect the player.");
+        comments.put("searchDistance", "Specifies the distance to search for suitable blocks.");
+        comments.put("randomization.enabled", "Whether to randomize search for suitable blocks.");
+        comments.put("randomization.distanceStack", "How far to spread distance randomization.");
+        comments.put("randomization.randomizeZeroDistance", "If disabled and there is a block directly above you, that block will be chosen.");
+        comments.put("effects.restoreFoodLevel", "Whether to restore the food level and saturation after resurrection.");
+        comments.put("effects.removeExistingEffects", "Whether to remove existing potion effects after resurrection. (Normal totem behaviour)");
+        comments.put("effects.list", "Potion effects to apply after resurrection. A list of ids can be found here: https://minecraft.fandom.com/wiki/Effect#Effect_list");
+        comments.put("animation.teleportParticles", "Whether to display teleport particles after resurrection.");
+        comments.put("animation.teleportSound", "Whether to play a teleport sound and delay totem effects for a short amount of time.");
+        comments.put("animation.totemParticles", "Whether to display totem particles.");
+        comments.put("animation.totemAnimation", "Whether to display the totem animation.");
+        comments.put("item.hasToBeInHand", "If disabled, the totem does not has to be hold in the hand to work.");
+        comments.put("item.customRecipe", "Whether to use a custom item and recipe for the totem item.");
+        comments.put("item.result", "The item to use as a totem item and the result of the recipe.");
+        comments.put("item.recipe.shaped", "Whether the recipe should be a shaped recipe.");
+        comments.put("item.recipe.shapelessIngredients", "The ingredients in case \"shaped\" is disabled.");
+        comments.put("item.recipe.shapedRows", "The shape of the recipe in case \"shaped\" is enabled.");
+        comments.put("item.recipe.shapedIngredients", "The ingredients of the recipe in case \"shaped\" is enabled.");
+    }
 
     public static void load() throws IOException {
         DumperOptions options = new DumperOptions();
@@ -42,14 +63,30 @@ public class Config {
         }
 
         try (FileWriter writer = new FileWriter(file)) {
-            Pattern pattern = Pattern.compile("\\s+id: (\\d+)");
+            Pattern pattern = Pattern.compile("((\\s|-)*)(\\w+):( .+)?");
+            Pattern potionPattern = Pattern.compile("  - id: (\\d+)");
+            Map<Integer, String> parents = new HashMap<>();
             String[] lines = yaml.dumpAsMap(config).split("\n");
             for (int i = 0; i < lines.length; i++) {
-                Matcher matcher = pattern.matcher(lines[i]);
+                String line = lines[i];
+                Matcher matcher = pattern.matcher(line);
                 if (matcher.matches()) {
-                    PotionEffectType type = PotionEffectType.getById(Integer.parseInt(matcher.group(1)));
+                    int indent = matcher.group(1).length();
+                    parents.put(indent, matcher.group(3));
+
+                    List<String> tree = new ArrayList<>();
+                    for (int j = 0; j <= indent; j += options.getIndent())
+                        tree.add(parents.get(j));
+                    String key = String.join(".", tree);
+                    if (comments.containsKey(key))
+                        lines[i] = line + "  # " + comments.get(key);
+                }
+
+                Matcher potionMatcher = potionPattern.matcher(line);
+                if (potionMatcher.matches()) {
+                    PotionEffectType type = PotionEffectType.getById(Integer.parseInt(potionMatcher.group(1)));
                     if (type != null)
-                        lines[i] = lines[i] + "  # " + type;
+                        lines[i] = line + "  # " + type.getName();
                 }
             }
 
@@ -149,7 +186,7 @@ public class Config {
 
             public String item = "totem_of_undying";
             public int count = 1;
-            public String nbt = "{display: {Name: '{\"text\": \"§7Void §eTotem\"}'}, HideFlags:1, Enchantments:[{id:\"minecraft:unbreaking\",lvl:1}]}";
+            public String nbt = "{display: {Name: \"{\\\"text\\\": \\\"§7Void §eTotem\\\"}\"}, HideFlags:1, Enchantments:[{id:\"minecraft:unbreaking\",lvl:1}]}";
         }
 
         public static class RecipeData {

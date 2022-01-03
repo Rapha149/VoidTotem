@@ -9,14 +9,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Events implements Listener {
 
@@ -34,44 +36,45 @@ public class Events implements Listener {
         if (health > config.healthTrigger)
             return;
 
-        int slot = -1;
-        Boolean mainHand = null;
+        ItemStack usedItem = null;
         PlayerInventory inv = player.getInventory();
         if (config.item.customRecipe) {
-            if (!config.item.valid || wrapper == null)
+            if (!config.item.valid)
                 return;
 
             if (config.item.hasToBeInHand) {
-                if (!(mainHand = wrapper.hasIdentifier(inv.getItemInMainHand())) && !wrapper.hasIdentifier(inv.getItemInOffHand()))
+                boolean mainHand = wrapper.hasIdentifier(inv.getItemInMainHand());
+                if (!mainHand && !wrapper.hasIdentifier(inv.getItemInOffHand()))
                     return;
+                usedItem = mainHand ? inv.getItemInMainHand() : inv.getItemInOffHand();
             } else {
-                int found = -1;
                 for (int i = 0; i < inv.getSize(); i++) {
-                    if (wrapper.hasIdentifier(inv.getItem(i))) {
-                        found = i;
+                    ItemStack item = inv.getItem(i);
+                    if (item != null && wrapper.hasIdentifier(item)) {
+                        usedItem = item;
                         break;
                     }
                 }
-                if (found == -1)
+                if (usedItem == null)
                     return;
-                slot = found;
             }
         } else {
             Material mat = Material.TOTEM_OF_UNDYING;
             if (config.item.hasToBeInHand) {
-                if (!(mainHand = inv.getItemInMainHand().getType() == mat) && inv.getItemInOffHand().getType() != mat)
+                boolean mainHand = inv.getItemInMainHand().getType() == mat;
+                if (!mainHand && inv.getItemInOffHand().getType() != mat)
                     return;
+                usedItem = mainHand ? inv.getItemInMainHand() : inv.getItemInOffHand();
             } else {
-                int found = -1;
                 for (int i = 0; i < inv.getSize(); i++) {
-                    if (inv.getItem(i).getType() == mat) {
-                        found = i;
+                    ItemStack item = inv.getItem(i);
+                    if (item != null && item.getType() == mat) {
+                        usedItem = item;
                         break;
                     }
                 }
-                if (found == -1)
+                if (usedItem == null)
                     return;
-                slot = found;
             }
         }
 
@@ -118,21 +121,15 @@ public class Events implements Listener {
                 Collections.shuffle(blocks);
 
             for (int[] coords : blocks) {
-                Block block = world.getHighestBlockAt(coords[0], coords[1]);
-                if (block.getType().isSolid() && wrapper.isPassable(block = block.getRelative(BlockFace.UP)) &&
+                Block block = wrapper.getHighestEmptyBlockAt(world, coords[0], coords[1]);
+                if (block.getRelative(BlockFace.DOWN).getType().isSolid() && wrapper.isPassable(block) &&
                     wrapper.isPassable(block.getRelative(BlockFace.UP))) {
                     Location newLoc = block.getLocation().add(0.5, 0, 0.5);
                     newLoc.setYaw(player.getLocation().getYaw());
                     newLoc.setPitch(player.getLocation().getPitch());
 
                     event.setCancelled(true);
-                    if (mainHand != null) {
-                        if (mainHand)
-                            inv.setItemInMainHand(null);
-                        else
-                            inv.setItemInOffHand(null);
-                    } else
-                        inv.setItem(slot, null);
+                    usedItem.setAmount(usedItem.getAmount() - 1);
                     player.updateInventory();
 
                     player.setGliding(false);
@@ -140,13 +137,16 @@ public class Events implements Listener {
                     player.teleport(newLoc);
                     player.setHealth(Math.max(health, 0) + 0.5);
 
-                    if (config.effects.removeExistingEffects)
-                        player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
-                    config.effects.list.forEach(effectData -> {
-                        PotionEffectType type = PotionEffectType.getById(effectData.id);
-                        if (type != null)
-                            type.createEffect(effectData.duration, effectData.amplifier).apply(player);
+                    boolean removeExisting = config.effects.removeExistingEffects;
+                    List<Integer> effectIds = removeExisting ? null : config.effects.list.stream().map(effectData -> effectData.id).collect(Collectors.toList());
+                    player.getActivePotionEffects().forEach(effect -> {
+                        if (removeExisting || effectIds.contains(effect.getType().getId()))
+                            player.removePotionEffect(effect.getType());
                     });
+                    player.addPotionEffects(config.effects.list.stream().map(effectData -> {
+                        PotionEffectType type = PotionEffectType.getById(effectData.id);
+                        return type != null ? new PotionEffect(type, effectData.duration * 20, effectData.amplifier) : null;
+                    }).filter(Objects::nonNull).collect(Collectors.toList()));
 
                     if (config.effects.restoreFoodLevel) {
                         player.setFoodLevel(20);
@@ -158,13 +158,14 @@ public class Events implements Listener {
                         if (config.animation.totemAnimation)
                             player.playEffect(EntityEffect.TOTEM_RESURRECT);
 
-                        if (config.animation.totemParticles) {
+                        /*if (config.animation.totemParticles) {
                             AtomicReference<BukkitTask> task = new AtomicReference<>();
                             task.set(Bukkit.getScheduler().runTaskTimer(plugin, () -> new Runnable() {
                                 int count = 0;
 
                                 @Override
                                 public void run() {
+                                    VoidTotem.getInstance().getLogger().info("Test");
                                     count++;
                                     if (count > 7) {
                                         task.get().cancel();
@@ -173,14 +174,14 @@ public class Events implements Listener {
                                     player.spawnParticle(Particle.TOTEM, newLoc, 60, 0, 0, 0, 0.4);
                                 }
                             }, 0, 5));
-                        }
+                        }*/
                     };
 
                     if (config.animation.teleportParticles)
-                        player.spawnParticle(Particle.PORTAL, newLoc.clone().add(0, 1, 0), 150, 0.3, 0.4, 0.3, 0.1);
+                        world.spawnParticle(Particle.PORTAL, newLoc.clone().add(0, 1, 0), 150, 0.3, 0.4, 0.3, 0.1);
 
                     if (config.animation.teleportSound) {
-                        player.playSound(newLoc, Sound.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.PLAYERS, 1F, 1F);
+                        world.playSound(newLoc, Sound.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.PLAYERS, 1F, 1F);
                         Bukkit.getScheduler().runTaskLater(plugin, totemAnimation, 6);
                     } else
                         totemAnimation.run();

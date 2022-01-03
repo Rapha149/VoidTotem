@@ -62,6 +62,7 @@ public final class VoidTotem extends JavaPlugin {
             }
         }
 
+        loadRecipe();
         getServer().getPluginManager().registerEvents(new Events(), this);
     }
 
@@ -97,7 +98,7 @@ public final class VoidTotem extends JavaPlugin {
             Config.get().effects.list.forEach(effect -> {
                 PotionEffectType type = PotionEffectType.getById(effect.id);
                 if (type != null)
-                    map.put(type.toString(), 1);
+                    map.put(type.getName().toLowerCase(), 1);
             });
             return map;
         }));
