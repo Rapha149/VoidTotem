@@ -4,6 +4,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.v1_15_R1.ItemStack;
 import net.minecraft.server.v1_15_R1.MojangsonParser;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 
@@ -36,6 +37,11 @@ public class Wrapper1_15_R1 implements VersionWrapper {
         if(!nbt.hasKey(IDENTIFIER))
             return false;
         return nbt.getBoolean(IDENTIFIER);
+    }
+
+    @Override
+    public Block getHighestEmptyBlockAt(World world, int x, int z) {
+        return world.getHighestBlockAt(x, z);
     }
 
     @Override

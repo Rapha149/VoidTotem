@@ -1,5 +1,6 @@
 package de.rapha149.voidtotem.version;
 
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
@@ -12,6 +13,8 @@ public interface VersionWrapper {
     ItemStack addIdentifier(ItemStack item);
 
     boolean hasIdentifier(ItemStack item);
+
+    Block getHighestEmptyBlockAt(World world, int x, int z);
 
     boolean isPassable(Block block);
 }
