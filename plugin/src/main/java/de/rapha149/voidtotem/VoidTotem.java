@@ -61,6 +61,8 @@ public final class VoidTotem extends JavaPlugin {
                 getLogger().warning("You can download it from: " + Updates.SPIGOT_URL);
             }
         }
+
+        getServer().getPluginManager().registerEvents(new Events(), this);
     }
 
     @Override
