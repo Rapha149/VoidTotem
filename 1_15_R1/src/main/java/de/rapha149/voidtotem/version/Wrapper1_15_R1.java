@@ -1,14 +1,13 @@
 package de.rapha149.voidtotem.version;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.server.v1_13_R1.ItemStack;
-import net.minecraft.server.v1_13_R1.MojangsonParser;
-import net.minecraft.server.v1_13_R1.NBTTagCompound;
-import org.bukkit.Material;
+import net.minecraft.server.v1_15_R1.ItemStack;
+import net.minecraft.server.v1_15_R1.MojangsonParser;
+import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_13_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 
-public class Wrapper1_13_R1 implements VersionWrapper {
+public class Wrapper1_15_R1 implements VersionWrapper {
 
     @Override
     public org.bukkit.inventory.ItemStack applyNBT(org.bukkit.inventory.ItemStack item, String nbt) {
@@ -41,6 +40,6 @@ public class Wrapper1_13_R1 implements VersionWrapper {
 
     @Override
     public boolean isPassable(Block block) {
-        return block.getType() == Material.AIR;
+        return block.isPassable();
     }
 }
