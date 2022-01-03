@@ -141,7 +141,7 @@ public final class VoidTotem extends JavaPlugin {
         }
 
         ItemData itemData = Config.get().item;
-        if (itemData.customRecipe && itemData.valid && wrapper != null) {
+        if (itemData.customRecipe && itemData.valid) {
             ResultData resultData = itemData.result;
             ItemStack result = wrapper.addIdentifier(wrapper.applyNBT(new ItemStack(Material.getMaterial(resultData.item.toUpperCase()),
                     resultData.count), resultData.nbt));
