@@ -148,14 +148,34 @@ public final class VoidTotem extends JavaPlugin {
                     resultData.count), resultData.nbt));
 
             RecipeData recipeData = itemData.recipe;
-            if(!recipeData.shaped) {
+            if (!recipeData.shaped) {
                 ShapelessRecipe recipe = new ShapelessRecipe(RECIPE_KEY, result);
                 recipeData.shapelessIngredients.forEach(ingredient -> recipe.addIngredient(Material.getMaterial(ingredient.toUpperCase())));
                 Bukkit.addRecipe(recipe);
             } else {
                 ShapedRecipe recipe = new ShapedRecipe(RECIPE_KEY, result);
-                recipe.shape(recipeData.shapedRows);
-                recipeData.shapedIngredients.forEach((c, ingredient) -> recipe.setIngredient(c, Material.getMaterial(ingredient.toUpperCase())));
+                String[] shape = new String[recipeData.shapedIngredients.size()];
+                Map<String, Character> ingredients = new HashMap<>();
+                for (int i = 0; i < recipeData.shapedIngredients.size(); i++) {
+                    StringBuilder sb = new StringBuilder();
+                    for (String str : recipeData.shapedIngredients.get(i).split("\\|")) {
+                        String ingredient = str.trim();
+                        Character character = ingredients.get(ingredient);
+                        if (character == null) {
+                            for (int c = 'a'; c <= 'z'; c++) {
+                                if (!ingredients.containsValue((char) c)) {
+                                    ingredients.put(ingredient, character = (char) c);
+                                    break;
+                                }
+                            }
+                        }
+                        if (character != null)
+                            sb.append(character);
+                    }
+                    shape[i] = sb.toString();
+                }
+                recipe.shape(shape);
+                ingredients.forEach((ingredient, c) -> recipe.setIngredient(c, Material.getMaterial(ingredient.toUpperCase())));
                 Bukkit.addRecipe(recipe);
             }
         }
