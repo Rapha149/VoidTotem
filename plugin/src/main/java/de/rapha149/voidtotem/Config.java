@@ -2,6 +2,7 @@ package de.rapha149.voidtotem;
 
 import de.rapha149.voidtotem.Config.ItemData.RecipeData;
 import de.rapha149.voidtotem.version.VersionWrapper;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.potion.PotionEffectType;
 import org.yaml.snakeyaml.DumperOptions;
@@ -26,25 +27,42 @@ public class Config {
 
     static {
         comments.put("checkForUpdates", "Whether to check for updates on enabling.");
-        comments.put("healthTrigger", "If the health of the player is be below or equal to this, the totem will try to resurrect the player.");
-        comments.put("searchDistance", "Specifies the distance to search for suitable blocks.");
+        comments.put("healthTrigger", "If the health of the player is be below or equal to this, the totem will try to resurrect the player." +
+                                      "\nIt's expressed in half hearts, that means if it's 0 the player will be resurrected when he would have 0 hearts left," +
+                                      "\nif it's 10 the player will be resurrected when he would have 5 hearts left and if it's 20 the player will be resurrected on first void damage.");
+        comments.put("searchDistance", "Specifies the distance to search for suitable blocks. It's measured in blocks in every direction from the player.");
         comments.put("randomization.enabled", "Whether to randomize search for suitable blocks.");
-        comments.put("randomization.distanceStack", "How far to spread distance randomization.");
-        comments.put("randomization.randomizeZeroDistance", "If disabled and there is a block directly above you, that block will be chosen.");
+        comments.put("randomization.distanceStack", "How far to spread distance randomization." +
+                                                    "\nFor example: if it's 10, 10 distances will be shuffled. The distances 0-9 will be shuffled," +
+                                                    "\nthe distances 10-19 will be shuffled and so on." +
+                                                    "\nSet to 0 to disable distance shuffling." +
+                                                    "\nSet to 1 to shuffle all distances (that might teleport the player far away).");
+        comments.put("randomization.randomizeZeroDistance", "If disabled and there is a block directly above you, that block will be chosen." +
+                                                            "\nIn other words: the distance 0 won't be shuffled.");
         comments.put("effects.restoreFoodLevel", "Whether to restore the food level and saturation after resurrection.");
-        comments.put("effects.removeExistingEffects", "Whether to remove existing potion effects after resurrection. (Normal totem behaviour)");
-        comments.put("effects.list", "Potion effects to apply after resurrection. A list of ids can be found here: https://minecraft.fandom.com/wiki/Effect#Effect_list");
+        comments.put("effects.removeExistingEffects", "Whether to remove existing potion effects after resurrection." +
+                                                      "\nThis is normal totem behaviour.");
+        comments.put("effects.list", "Potion effects to apply after resurrection." +
+                                     "\nA list of ids can be found here: https://minecraft.fandom.com/wiki/Effect#Effect_list" +
+                                     "\n  (Please only look at values from Java Edition)");
         comments.put("animation.teleportParticles", "Whether to display teleport particles after resurrection.");
         comments.put("animation.teleportSound", "Whether to play a teleport sound and delay totem effects for a short amount of time.");
         comments.put("animation.totemParticles", "Whether to display totem particles.");
         comments.put("animation.totemAnimation", "Whether to display the totem animation.");
-        comments.put("item.hasToBeInHand", "If disabled, the totem does not has to be hold in the hand to work.");
-        comments.put("item.customRecipe", "Whether to use a custom item and recipe for the totem item.");
+        comments.put("item.hasToBeInHand", "If disabled, the totem does not has to be hold in the hand to work." +
+                                           "\nIt then can by anywhere in the inventory." +
+                                           "\nIf enabled, the totem has to be in the mainhand or the offhand, just like a normal totem.");
+        comments.put("item.customRecipe", "Whether to use a custom item and recipe for the totem item." +
+                                          "\nPlease note: if you change the resulting item, earlier crafted totems will still work.");
         comments.put("item.result", "The item to use as a totem item and the result of the recipe.");
         comments.put("item.recipe.shaped", "Whether the recipe should be a shaped recipe.");
-        comments.put("item.recipe.shapelessIngredients", "The ingredients in case \"shaped\" is disabled.");
-        comments.put("item.recipe.shapedRows", "The shape of the recipe in case \"shaped\" is enabled.");
-        comments.put("item.recipe.shapedIngredients", "The ingredients of the recipe in case \"shaped\" is enabled.");
+        comments.put("item.recipe.shapelessIngredients", "The ingredients in case \"shaped\" is disabled." +
+                                                         "\nYou have to state at least 1 and at most 9 ingredients.");
+        comments.put("item.recipe.shapedIngredients", "The ingredients in case \"shaped\" is enabled." +
+                                                      "\nIf you want a 2x2 shaped recipe, just remove one row and only state 2 ingredients in the other rows.");
+//        comments.put("item.recipe.shapedRows", "The shape of the recipe in case \"shaped\" is enabled." +
+//                                               "\nIf you want a 2x2 shaped recipe, just remove one row and make the others 2 characters long.");
+//        comments.put("item.recipe.shapedIngredients", "The ingredients of the recipe in case \"shaped\" is enabled.");
     }
 
     public static void load() throws IOException {
@@ -68,9 +86,13 @@ public class Config {
             Pattern pattern = Pattern.compile("((\\s|-)*)(\\w+):( .+)?");
             Pattern potionPattern = Pattern.compile("  - id: (\\d+)");
             Map<Integer, String> parents = new HashMap<>();
+            int lastIndent = 0;
             String[] lines = yaml.dumpAsMap(config).split("\n");
-            for (int i = 0; i < lines.length; i++) {
-                String line = lines[i];
+            StringBuilder sb = new StringBuilder("# The explanations in this config are not very long, to get a more in depth explanation," +
+                                                 "\n# Check out the Github or Spigot website:" +
+                                                 "\n# Github: https://github.com/Rapha149/VoidTotem" +
+                                                 "\n# Spigot: " + Updates.SPIGOT_URL + "\n");
+            for (String line : lines) {
                 Matcher matcher = pattern.matcher(line);
                 if (matcher.matches()) {
                     int indent = matcher.group(1).length();
@@ -80,19 +102,33 @@ public class Config {
                     for (int j = 0; j <= indent; j += options.getIndent())
                         tree.add(parents.get(j));
                     String key = String.join(".", tree);
-                    if (comments.containsKey(key))
-                        lines[i] = line + "  # " + comments.get(key);
+                    if (comments.containsKey(key)) {
+                        if (lastIndent == indent)
+                            sb.append("\n");
+
+                        String prefix = StringUtils.repeat(" ", indent) + "# ";
+                        sb.append(prefix + String.join("\n" + prefix, comments.get(key).split("\n")) + "\n" + line + "\n");
+
+                        lastIndent = indent;
+                        continue;
+                    } else if (matcher.group(4) == null)
+                        sb.append("\n");
+                    lastIndent = indent;
                 }
 
                 Matcher potionMatcher = potionPattern.matcher(line);
                 if (potionMatcher.matches()) {
                     PotionEffectType type = PotionEffectType.getById(Integer.parseInt(potionMatcher.group(1)));
-                    if (type != null)
-                        lines[i] = line + "  # " + wrapper.getPotionEffectName(type);
+                    if (type != null) {
+                        sb.append(line + "  # " + wrapper.getPotionEffectName(type) + "\n");
+                        continue;
+                    }
                 }
+
+                sb.append(line + "\n");
             }
 
-            writer.write(String.join("\n", lines));
+            writer.write(sb.toString());
         }
 
         Logger logger = VoidTotem.getInstance().getLogger();
