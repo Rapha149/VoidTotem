@@ -137,7 +137,8 @@ public class Events implements Listener {
                     newLoc.setPitch(player.getLocation().getPitch());
 
                     event.setCancelled(true);
-                    usedItem.setAmount(usedItem.getAmount() - 1);
+                    if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE)
+                        usedItem.setAmount(usedItem.getAmount() - 1);
                     player.updateInventory();
 
                     player.setGliding(false);
