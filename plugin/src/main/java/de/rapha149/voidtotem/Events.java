@@ -14,10 +14,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Events implements Listener {
@@ -99,8 +96,7 @@ public class Events implements Listener {
                 boolean randomizeZero = config.randomization.randomizeZeroDistance;
                 for (int i = (randomizeZero ? 0 : 1); i < config.searchDistance; i++)
                     distances.add(i);
-                if (config.randomization.distanceStack == 1)
-                    Collections.shuffle(distances);
+                Collections.shuffle(distances);
                 if (!randomizeZero)
                     distances.add(0, 0);
             }
