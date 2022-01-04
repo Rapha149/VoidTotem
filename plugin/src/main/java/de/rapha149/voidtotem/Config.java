@@ -45,7 +45,7 @@ public class Config {
                                                       "\nThis is normal totem behaviour.");
         comments.put("effects.list", "Potion effects to apply after resurrection." +
                                      "\nA list of ids can be found here: https://minecraft.fandom.com/wiki/Effect#Effect_list" +
-                                     "\n  (Please only look at values from Java Edition)");
+                                     "\n (Please only look at values that are present in the Java Edition)");
         comments.put("animation.teleportParticles", "Whether to display teleport particles after resurrection.");
         comments.put("animation.teleportSound", "Whether to play a teleport sound and delay totem effects for a short amount of time.");
         comments.put("animation.totemParticles", "Whether to display totem particles.");
