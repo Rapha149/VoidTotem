@@ -1,10 +1,7 @@
 package de.rapha149.voidtotem.version;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.server.v1_13_R2.ItemStack;
-import net.minecraft.server.v1_13_R2.MinecraftKey;
-import net.minecraft.server.v1_13_R2.MojangsonParser;
-import net.minecraft.server.v1_13_R2.NBTTagCompound;
+import net.minecraft.server.v1_13_R2.*;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -12,6 +9,8 @@ import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_13_R2.CraftServer;
 import org.bukkit.craftbukkit.v1_13_R2.inventory.CraftItemStack;
 import org.bukkit.potion.PotionEffectType;
+
+import java.util.Map;
 
 public class Wrapper1_13_R2 implements VersionWrapper {
 
@@ -46,17 +45,23 @@ public class Wrapper1_13_R2 implements VersionWrapper {
     @Override
     public boolean hasIdentifier(org.bukkit.inventory.ItemStack item) {
         ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        if(!nmsItem.hasTag())
+        if (!nmsItem.hasTag())
             return false;
         NBTTagCompound nbt = nmsItem.getTag();
-        if(!nbt.hasKey(IDENTIFIER))
+        if (!nbt.hasKey(IDENTIFIER))
             return false;
         return nbt.getBoolean(IDENTIFIER);
     }
 
     @Override
     public void removeRecipe(NamespacedKey key) {
-        ((CraftServer) Bukkit.getServer()).getServer().getCraftingManager().recipes.remove(new MinecraftKey(key.getNamespace(), key.getKey()));
+        try {
+            CraftingManager cm = ((CraftServer) Bukkit.getServer()).getServer().getCraftingManager();
+            ((Map<MinecraftKey, IRecipe>) cm.getClass().getDeclaredField("recipes").get(cm))
+                    .remove(new MinecraftKey(key.getNamespace(), key.getKey()));
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
