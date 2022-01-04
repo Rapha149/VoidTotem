@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_15_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.potion.PotionEffectType;
@@ -43,10 +44,10 @@ public class Wrapper1_15_R1 implements VersionWrapper {
     @Override
     public boolean hasIdentifier(org.bukkit.inventory.ItemStack item) {
         ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        if(!nmsItem.hasTag())
+        if (!nmsItem.hasTag())
             return false;
         NBTTagCompound nbt = nmsItem.getTag();
-        if(!nbt.hasKey(IDENTIFIER))
+        if (!nbt.hasKey(IDENTIFIER))
             return false;
         return nbt.getBoolean(IDENTIFIER);
     }
@@ -64,6 +65,8 @@ public class Wrapper1_15_R1 implements VersionWrapper {
 
     @Override
     public Block getHighestEmptyBlockAt(World world, int x, int z) {
+        if (Bukkit.getBukkitVersion().contains("1.15.2"))
+            return world.getHighestBlockAt(x, z).getRelative(BlockFace.UP);
         return world.getHighestBlockAt(x, z);
     }
 
