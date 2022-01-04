@@ -1,12 +1,13 @@
 package de.rapha149.voidtotem.version;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.server.v1_16_R2.ItemStack;
-import net.minecraft.server.v1_16_R2.MojangsonParser;
-import net.minecraft.server.v1_16_R2.NBTTagCompound;
+import net.minecraft.server.v1_16_R2.*;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.v1_16_R2.CraftServer;
 import org.bukkit.craftbukkit.v1_16_R2.inventory.CraftItemStack;
 import org.bukkit.potion.PotionEffectType;
 
@@ -49,6 +50,12 @@ public class Wrapper1_16_R2 implements VersionWrapper {
         if(!nbt.hasKey(IDENTIFIER))
             return false;
         return nbt.getBoolean(IDENTIFIER);
+    }
+
+    @Override
+    public void removeRecipe(NamespacedKey key) {
+        ((CraftServer) Bukkit.getServer()).getServer().getCraftingManager().recipes.get(Recipes.CRAFTING)
+                .remove(new MinecraftKey(key.getNamespace(), key.getKey()));
     }
 
     @Override

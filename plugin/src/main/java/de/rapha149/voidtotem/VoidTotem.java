@@ -1,5 +1,6 @@
 package de.rapha149.voidtotem;
 
+import com.google.common.collect.Streams;
 import de.rapha149.voidtotem.Config.ItemData;
 import de.rapha149.voidtotem.Config.ItemData.RecipeData;
 import de.rapha149.voidtotem.Config.ItemData.ResultData;
@@ -11,7 +12,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,7 +19,6 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public final class VoidTotem extends JavaPlugin {
@@ -131,14 +130,13 @@ public final class VoidTotem extends JavaPlugin {
     }
 
     public void loadRecipe() {
-        Iterator<Recipe> iterator = Bukkit.recipeIterator();
-        while (iterator.hasNext()) {
-            Recipe recipe = iterator.next();
-            if (recipe instanceof ShapelessRecipe) {
-                if (((ShapelessRecipe) recipe).getKey().equals(RECIPE_KEY))
-                    iterator.remove();
-            } else if (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(RECIPE_KEY))
-                iterator.remove();
+        wrapper.removeRecipe(RECIPE_KEY);
+
+        if(Streams.stream(Bukkit.recipeIterator()).anyMatch(recipe ->
+                (recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().equals(RECIPE_KEY) ||
+                 (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(RECIPE_KEY))))) {
+            getLogger().warning("Old recipe could not be removed. If you changed the recipe, please restart the server for the changed to take affect.");
+            return;
         }
 
         ItemData itemData = Config.get().item;

@@ -1,5 +1,6 @@
 package de.rapha149.voidtotem.version;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
@@ -16,6 +17,8 @@ public interface VersionWrapper {
     ItemStack addIdentifier(ItemStack item);
 
     boolean hasIdentifier(ItemStack item);
+
+    void removeRecipe(NamespacedKey key);
 
     String getPotionEffectName(PotionEffectType type);
 
