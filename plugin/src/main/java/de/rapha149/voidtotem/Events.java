@@ -88,16 +88,21 @@ public class Events implements Listener {
                 List<Integer> distanceStack = new ArrayList<>();
                 for (int i = 0; i < config.searchDistance; i++) {
                     distanceStack.add(i);
-                    if (distanceStack.size() >= config.randomization.distanceStack || i + 1 >= config.searchDistance) {
+                    if (distanceStack.size() >= config.randomization.distanceStack || i + 1 >= config.searchDistance
+                        || (!config.randomization.randomizeZeroDistance && i == 0)) {
                         Collections.shuffle(distanceStack);
                         distances.addAll(distanceStack);
                         distanceStack.clear();
                     }
                 }
             } else {
-                for (int i = 0; i < config.searchDistance; i++)
+                boolean randomizeZero = config.randomization.randomizeZeroDistance;
+                for (int i = (randomizeZero ? 0 : 1); i < config.searchDistance; i++)
                     distances.add(i);
-                Collections.shuffle(distances);
+                if (config.randomization.distanceStack == 1)
+                    Collections.shuffle(distances);
+                if (!randomizeZero)
+                    distances.add(0, 0);
             }
         } else {
             for (int i = 0; i < config.searchDistance; i++)
@@ -106,19 +111,22 @@ public class Events implements Listener {
 
         for (Integer distance : distances) {
             boolean found = false;
-            int x1 = x - distance, z1 = z - distance, x2 = x + distance, z2 = z + distance, cX = x1, cZ = z1;
             List<int[]> blocks = new ArrayList<>();
-            for (; cX < x2; cX++)
-                blocks.add(new int[]{cX, cZ});
-            for (; cZ < z2; cZ++)
-                blocks.add(new int[]{cX, cZ});
-            for (; cX > x1; cX--)
-                blocks.add(new int[]{cX, cZ});
-            for (; cZ > z1; cZ--)
-                blocks.add(new int[]{cX, cZ});
+            if (distance > 0) {
+                int x1 = x - distance, z1 = z - distance, x2 = x + distance, z2 = z + distance, cX = x1, cZ = z1;
+                for (; cX < x2; cX++)
+                    blocks.add(new int[]{cX, cZ});
+                for (; cZ < z2; cZ++)
+                    blocks.add(new int[]{cX, cZ});
+                for (; cX > x1; cX--)
+                    blocks.add(new int[]{cX, cZ});
+                for (; cZ > z1; cZ--)
+                    blocks.add(new int[]{cX, cZ});
 
-            if (config.randomization.enabled)
-                Collections.shuffle(blocks);
+                if (config.randomization.enabled)
+                    Collections.shuffle(blocks);
+            } else
+                blocks.add(new int[]{x, z});
 
             for (int[] coords : blocks) {
                 Block block = wrapper.getHighestEmptyBlockAt(world, coords[0], coords[1]);
