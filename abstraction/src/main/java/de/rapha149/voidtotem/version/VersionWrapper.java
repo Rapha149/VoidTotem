@@ -9,6 +9,8 @@ public interface VersionWrapper {
 
     String IDENTIFIER = "voidtotem";
 
+    boolean verifyNBT(String nbt);
+
     ItemStack applyNBT(ItemStack item, String nbt) throws IllegalArgumentException;
 
     ItemStack addIdentifier(ItemStack item);

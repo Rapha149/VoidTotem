@@ -12,6 +12,16 @@ import org.bukkit.potion.PotionEffectType;
 public class Wrapper1_14_R1 implements VersionWrapper {
 
     @Override
+    public boolean verifyNBT(String nbt) {
+        try {
+            MojangsonParser.parse(nbt);
+            return true;
+        } catch (CommandSyntaxException e) {
+            return false;
+        }
+    }
+
+    @Override
     public org.bukkit.inventory.ItemStack applyNBT(org.bukkit.inventory.ItemStack item, String nbt) {
         try {
             ItemStack nmsItem = CraftItemStack.asNMSCopy(item);

@@ -1,6 +1,7 @@
 package de.rapha149.voidtotem;
 
 import de.rapha149.voidtotem.Config.ItemData.RecipeData;
+import de.rapha149.voidtotem.Config.ItemData.ResultData;
 import de.rapha149.voidtotem.version.VersionWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
@@ -55,11 +56,13 @@ public class Config {
         comments.put("item.customRecipe", "Whether to use a custom item and recipe for the totem item." +
                                           "\nPlease note: if you change the resulting item, earlier crafted totems will still work.");
         comments.put("item.result", "The item to use as a totem item and the result of the recipe.");
+        comments.put("item.result.nbt", "If you want to include ' in your nbt string, you can escape them using ''" +
+                                        "\n\"HideFlags: 1\" which is given by default is used to hide the enchantments.");
         comments.put("item.recipe.shaped", "Whether the recipe should be a shaped recipe.");
         comments.put("item.recipe.shapelessIngredients", "The ingredients in case \"shaped\" is disabled." +
                                                          "\nYou have to state at least 1 and at most 9 ingredients.");
         comments.put("item.recipe.shapedIngredients", "The ingredients in case \"shaped\" is enabled." +
-                                                      "\nIf you want a 2x2 shaped recipe, just remove one row and only state 2 ingredients in the other rows.");
+                                                      "\nThe shape may differ from the original 3x3. For example it can be 2x3, 3x2 or 2x2.");
 //        comments.put("item.recipe.shapedRows", "The shape of the recipe in case \"shaped\" is enabled." +
 //                                               "\nIf you want a 2x2 shaped recipe, just remove one row and make the others 2 characters long.");
 //        comments.put("item.recipe.shapedIngredients", "The ingredients of the recipe in case \"shaped\" is enabled.");
@@ -134,23 +137,53 @@ public class Config {
         Logger logger = VoidTotem.getInstance().getLogger();
         config.effects.list.forEach(effect -> {
             if (PotionEffectType.getById(effect.id) == null) {
-                logger.warning("There's no potion effect with the id \"" + effect.id + "\"");
+                logger.severe("There's no potion effect with the id \"" + effect.id + "\"");
                 effect.valid = false;
             }
         });
 
         ItemData item = config.item;
         if (item.customRecipe) {
-            String resultItem = config.item.result.item;
-            if (Material.getMaterial(resultItem.toUpperCase()) == null) {
-                logger.warning("The result item \"" + resultItem + "\" does not exist.");
+            ResultData result = config.item.result;
+            if (Material.getMaterial(result.item.toUpperCase()) == null) {
+                logger.severe("The result item \"" + result.item + "\" does not exist.");
+                item.valid = false;
+            }
+
+            if(result.count <= 0 || result.count > 127) {
+                logger.severe("The count of the result item has to be between 1 and 127.");
+                item.valid = false;
+            }
+
+            if(!wrapper.verifyNBT(result.nbt)) {
+                logger.severe("Can't read result item nbt string.");
                 item.valid = false;
             }
 
             RecipeData recipe = item.recipe;
-            (recipe.shaped ? recipe.shapedIngredients.values() : recipe.shapelessIngredients).forEach(ingredient -> {
+            if(!recipe.shaped) {
+                if(recipe.shapelessIngredients.size() <= 0 || recipe.shapelessIngredients.size() > 9) {
+                    logger.severe("You specified an invalid amount of ingredients.");
+                    item.valid = false;
+                }
+            } else {
+                if(recipe.shapedIngredients.size() <= 0 || recipe.shapedIngredients.size() > 3) {
+                    logger.severe("You specified an invalid amount of ingredient rows.");
+                    item.valid = false;
+                }
+                for (int i = 0; i < recipe.shapedIngredients.size(); i++) {
+                    int length = recipe.shapedIngredients.get(i).split("\\|").length;
+                    if(length <= 0 || length > 3) {
+                        logger.severe("The row " + (i + 1) + " has an invalid amount of ingredients.");
+                        item.valid = false;
+                    }
+                }
+            }
+
+            (recipe.shaped ? recipe.shapedIngredients.stream().flatMap(row -> Arrays.stream(row.split("\\|")))
+                    .map(String::trim) : recipe.shapelessIngredients.stream()).distinct().forEach(ingredient -> {
                 if (Material.getMaterial(ingredient.toUpperCase()) == null) {
-                    logger.warning("The ingredient item \"" + ingredient + "\" does not exist.");
+                    logger.severe("The ingredient item \"" + ingredient + "\" does not exist.");
                     item.valid = false;
                 }
             });
@@ -224,22 +257,16 @@ public class Config {
 
             public String item = "totem_of_undying";
             public int count = 1;
-            public String nbt = "{display: {Name: \"{\\\"text\\\": \\\"§7Void §eTotem\\\"}\"}, HideFlags:1, Enchantments:[{id:\"minecraft:unbreaking\",lvl:1}]}";
+            public String nbt = "{display: {Name: \"{\\\"text\\\": \\\"§6Void §eTotem\\\"}\"}, HideFlags: 1, Enchantments: [{id: \"minecraft:unbreaking\", lvl: 1}]}";
         }
 
         public static class RecipeData {
 
             public boolean shaped = true;
             public List<String> shapelessIngredients = Arrays.asList("totem_of_undying", "ender_pearl", "chorus_fruit");
-            public String[] shapedRows = new String[]{"cdc", "ete", "cdc"};
-            public Map<Character, String> shapedIngredients = new HashMap<>();
-
-            {
-                shapedIngredients.put('c', "chorus_fruit");
-                shapedIngredients.put('d', "diamond");
-                shapedIngredients.put('e', "ender_pearl");
-                shapedIngredients.put('t', "totem_of_undying");
-            }
+            public List<String> shapedIngredients = Arrays.asList("chorus_fruit | diamond | chorus_fruit",
+                    "ender_pearl | totem_of_undying | ender_pearl",
+                    "chorus_fruit | diamond | chorus_fruit");
         }
     }
 }
