@@ -8,6 +8,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack;
+import org.bukkit.potion.PotionEffectType;
 
 public class Wrapper1_18_R1 implements VersionWrapper {
 
@@ -38,6 +39,11 @@ public class Wrapper1_18_R1 implements VersionWrapper {
         if(!nbt.e(IDENTIFIER))
             return false;
         return nbt.q(IDENTIFIER);
+    }
+
+    @Override
+    public String getPotionEffectName(PotionEffectType type) {
+        return type.getKey().getKey();
     }
 
     @Override

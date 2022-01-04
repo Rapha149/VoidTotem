@@ -1,6 +1,7 @@
 package de.rapha149.voidtotem;
 
 import de.rapha149.voidtotem.Config.ItemData.RecipeData;
+import de.rapha149.voidtotem.version.VersionWrapper;
 import org.bukkit.Material;
 import org.bukkit.potion.PotionEffectType;
 import org.yaml.snakeyaml.DumperOptions;
@@ -62,6 +63,7 @@ public class Config {
             config = new Config();
         }
 
+        VersionWrapper wrapper = VoidTotem.getInstance().wrapper;
         try (FileWriter writer = new FileWriter(file)) {
             Pattern pattern = Pattern.compile("((\\s|-)*)(\\w+):( .+)?");
             Pattern potionPattern = Pattern.compile("  - id: (\\d+)");
@@ -86,7 +88,7 @@ public class Config {
                 if (potionMatcher.matches()) {
                     PotionEffectType type = PotionEffectType.getById(Integer.parseInt(potionMatcher.group(1)));
                     if (type != null)
-                        lines[i] = line + "  # " + type.getName();
+                        lines[i] = line + "  # " + wrapper.getPotionEffectName(type);
                 }
             }
 
