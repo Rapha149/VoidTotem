@@ -174,7 +174,12 @@ public final class VoidTotem extends JavaPlugin {
                 }
                 recipe.shape(shape);
                 ingredients.forEach((ingredient, c) -> recipe.setIngredient(c, Material.getMaterial(ingredient.toUpperCase())));
-                Bukkit.addRecipe(recipe);
+
+                try {
+                    Bukkit.addRecipe(recipe);
+                } catch (IllegalStateException e) {
+                    getLogger().warning("Old recipe could not be removed. If you changed the recipe, please restart the server for the changed to take affect.");
+                }
             }
         }
     }
