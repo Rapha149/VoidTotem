@@ -166,27 +166,9 @@ public class Events implements Listener {
                         player.setExhaustion(0F);
                     }
 
-                    Runnable totemAnimation = () -> {
-                        if (config.animation.totemAnimation)
+                    Runnable totemEffects = () -> {
+                        if (config.animation.totemEffects)
                             player.playEffect(EntityEffect.TOTEM_RESURRECT);
-
-                        /*if (config.animation.totemParticles) {
-                            AtomicReference<BukkitTask> task = new AtomicReference<>();
-                            task.set(Bukkit.getScheduler().runTaskTimer(plugin, () -> new Runnable() {
-                                int count = 0;
-
-                                @Override
-                                public void run() {
-                                    VoidTotem.getInstance().getLogger().info("Test");
-                                    count++;
-                                    if (count > 7) {
-                                        task.get().cancel();
-                                        return;
-                                    }
-                                    player.spawnParticle(Particle.TOTEM, newLoc, 60, 0, 0, 0, 0.4);
-                                }
-                            }, 0, 5));
-                        }*/
                     };
 
                     Bukkit.getScheduler().runTask(VoidTotem.getInstance(), () -> {
@@ -195,9 +177,9 @@ public class Events implements Listener {
 
                         if (config.animation.teleportSound) {
                             world.playSound(newLoc, Sound.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.PLAYERS, 1F, 1F);
-                            Bukkit.getScheduler().runTaskLater(plugin, totemAnimation, 6);
+                            Bukkit.getScheduler().runTaskLater(plugin, totemEffects, 6);
                         } else
-                            totemAnimation.run();
+                            totemEffects.run();
                     });
 
                     found = true;

@@ -51,8 +51,7 @@ public class Config {
                                      "\n (Please only look at values that are present in the Java Edition)");
         comments.put("animation.teleportParticles", "Whether to display teleport particles after resurrection.");
         comments.put("animation.teleportSound", "Whether to play a teleport sound and delay totem effects for a short amount of time.");
-        comments.put("animation.totemParticles", "Whether to display totem particles.");
-        comments.put("animation.totemAnimation", "Whether to display the totem animation.");
+        comments.put("animation.totemEffects", "Whether to display the totem effects (animation, particles and sound).");
         comments.put("item.hasToBeInHand", "If disabled, the totem does not has to be hold in the hand to work." +
                                            "\nIt then can by anywhere in the inventory." +
                                            "\nIf enabled, the totem has to be in the mainhand or the offhand, just like a normal totem.");
@@ -244,8 +243,7 @@ public class Config {
 
         public boolean teleportParticles = true;
         public boolean teleportSound = false;
-        public boolean totemParticles = true;
-        public boolean totemAnimation = true;
+        public boolean totemEffects = true;
     }
 
     public static class ItemData {
