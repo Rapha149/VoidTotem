@@ -14,7 +14,10 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Events implements Listener {
@@ -31,6 +34,8 @@ public class Events implements Listener {
 
         double health = player.getHealth() - event.getFinalDamage();
         if (health > config.healthTrigger)
+            return;
+        if (config.patchKillCommand && player.getLocation().getY() >= wrapper.getDownwardHeightLimit(player.getWorld()))
             return;
 
         ItemStack usedItem = null;
@@ -137,17 +142,18 @@ public class Events implements Listener {
                         usedItem.setAmount(usedItem.getAmount() - 1);
                     player.updateInventory();
 
-                    player.setGliding(false);
-                    player.setFallDistance(0);
-                    player.teleport(newLoc);
-                    player.setHealth(Math.max(health, 0) + 0.5);
-
                     boolean removeExisting = config.effects.removeExistingEffects;
                     List<Integer> effectIds = removeExisting ? null : config.effects.list.stream().map(effectData -> effectData.id).collect(Collectors.toList());
                     player.getActivePotionEffects().forEach(effect -> {
                         if (removeExisting || effectIds.contains(effect.getType().getId()))
                             player.removePotionEffect(effect.getType());
                     });
+
+                    player.setGliding(false);
+                    player.setFallDistance(0);
+                    player.teleport(newLoc);
+                    player.setHealth(Math.min(Math.max(health, 0) + 0.5, 20));
+
                     player.addPotionEffects(config.effects.list.stream().map(effectData -> {
                         PotionEffectType type = PotionEffectType.getById(effectData.id);
                         return type != null ? new PotionEffect(type, effectData.duration * 20, effectData.amplifier) : null;

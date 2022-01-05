@@ -32,6 +32,9 @@ public class Config {
                                       "\nIt's expressed in half hearts, that means if it's 0 the player will be resurrected when he would have 0 hearts left," +
                                       "\nif it's 10 the player will be resurrected when he would have 5 hearts left and if it's 20 the player will be resurrected on first void damage.");
         comments.put("searchDistance", "Specifies the distance to search for suitable blocks. It's measured in blocks in every direction from the player.");
+        comments.put("patchKillCommand", "If disabled, the totem will save players from the /kill command." +
+                                         "\nThis is due to the fact that the damage cause in the Spigot API is the same for the void and /kill." +
+                                         "\nIf enabled the totem will only resurrect people if they are below the downward height limit.");
         comments.put("randomization.enabled", "Whether to randomize search for suitable blocks.");
         comments.put("randomization.distanceStack", "How far to spread distance randomization." +
                                                     "\nFor example: if it's 10, 10 distances will be shuffled. The distances 0-9 will be shuffled," +
@@ -197,6 +200,7 @@ public class Config {
     public boolean checkForUpdates = true;
     public double healthTrigger = 0;
     public int searchDistance = 100;
+    public boolean patchKillCommand = true;
     public RandomizationData randomization = new RandomizationData();
     public EffectsData effects = new EffectsData();
     public AnimationData animation = new AnimationData();

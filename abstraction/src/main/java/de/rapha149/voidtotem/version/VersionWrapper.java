@@ -22,6 +22,8 @@ public interface VersionWrapper {
 
     String getPotionEffectName(PotionEffectType type);
 
+    int getDownwardHeightLimit(World world);
+
     Block getHighestEmptyBlockAt(World world, int x, int z);
 
     boolean isPassable(Block block);

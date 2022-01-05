@@ -70,6 +70,11 @@ public class Wrapper1_13_R2 implements VersionWrapper {
     }
 
     @Override
+    public int getDownwardHeightLimit(World world) {
+        return 0;
+    }
+
+    @Override
     public Block getHighestEmptyBlockAt(World world, int x, int z) {
         return world.getHighestBlockAt(x, z);
     }
