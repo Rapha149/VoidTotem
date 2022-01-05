@@ -32,7 +32,8 @@ public class Events implements Listener {
         VoidTotem plugin = VoidTotem.getInstance();
         VersionWrapper wrapper = plugin.wrapper;
 
-        double health = player.getHealth() - event.getFinalDamage();
+        double health = player.getHealth() + wrapper.getAbsorptionHearts(player) - event.getDamage();
+        System.out.println(wrapper.getAbsorptionHearts(player) + " | " + event.getDamage() + " | " + event.getFinalDamage() + " | " + health);
         if (health > config.healthTrigger)
             return;
         if (config.patchKillCommand && player.getLocation().getY() >= wrapper.getDownwardHeightLimit(player.getWorld()))

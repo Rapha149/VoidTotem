@@ -3,6 +3,7 @@ package de.rapha149.voidtotem.version;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 
@@ -27,4 +28,6 @@ public interface VersionWrapper {
     Block getHighestEmptyBlockAt(World world, int x, int z);
 
     boolean isPassable(Block block);
+
+    float getAbsorptionHearts(Player player);
 }
