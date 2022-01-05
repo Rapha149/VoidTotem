@@ -62,11 +62,14 @@ public final class VoidTotem extends JavaPlugin {
         }
 
         loadRecipe();
+        getCommand("voidtotemreload").setExecutor(new ReloadCommand());
         getServer().getPluginManager().registerEvents(new Events(), this);
+        getLogger().info("Plugin enabled.");
     }
 
     @Override
     public void onDisable() {
+        getLogger().info("Plugin disabled.");
     }
 
     public static VoidTotem getInstance() {
