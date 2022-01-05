@@ -182,14 +182,16 @@ public class Events implements Listener {
                         }*/
                     };
 
-                    if (config.animation.teleportParticles)
-                        world.spawnParticle(Particle.PORTAL, newLoc.clone().add(0, 1, 0), 150, 0.3, 0.4, 0.3, 0.1);
+                    Bukkit.getScheduler().runTask(VoidTotem.getInstance(), () -> {
+                        if (config.animation.teleportParticles)
+                            world.spawnParticle(Particle.PORTAL, newLoc.clone().add(0, 1, 0), 150, 0.3, 0.4, 0.3, 0.1);
 
-                    if (config.animation.teleportSound) {
-                        world.playSound(newLoc, Sound.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.PLAYERS, 1F, 1F);
-                        Bukkit.getScheduler().runTaskLater(plugin, totemAnimation, 6);
-                    } else
-                        totemAnimation.run();
+                        if (config.animation.teleportSound) {
+                            world.playSound(newLoc, Sound.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.PLAYERS, 1F, 1F);
+                            Bukkit.getScheduler().runTaskLater(plugin, totemAnimation, 6);
+                        } else
+                            totemAnimation.run();
+                    });
 
                     found = true;
                     break;
