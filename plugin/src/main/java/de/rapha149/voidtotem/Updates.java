@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 
 public class Updates {
 
-    public static final String SPIGOT_URL = "https://www.spigotmc.org/resources/null.-1"; //TODO change
-    private static final int RESOURCE_ID = -1; // TODO change
+    public static final String SPIGOT_URL = "https://www.spigotmc.org/resources/void-totem.99003/";
+    private static final int RESOURCE_ID = 99003;
 
     public static String getAvailableVersion() {
         VoidTotem plugin = VoidTotem.getInstance();
