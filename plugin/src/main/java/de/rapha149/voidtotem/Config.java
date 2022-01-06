@@ -17,6 +17,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,21 +57,20 @@ public class Config {
                                            "\nIt then can by anywhere in the inventory." +
                                            "\nIf enabled, the totem has to be in the mainhand or the offhand, just like a normal totem.");
         comments.put("item.customRecipe", "Whether to use a custom item and recipe for the totem item." +
+                                          "\nIf you made a mistake with the custom item you will be notified in the console and the item won't work." +
                                           "\nPlease note: if you change the resulting item, earlier crafted totems will still work.");
         comments.put("item.result", "The item to use as a totem item and the result of the recipe.");
         comments.put("item.result.nbt", "If you want to include ' in your nbt string, you can escape them using ''" +
                                         "\n\"HideFlags: 1\" which is given by default is used to hide the enchantments.");
         comments.put("item.recipe.shaped", "Whether the recipe should be a shaped recipe.");
         comments.put("item.recipe.shapelessIngredients", "The ingredients in case \"shaped\" is disabled." +
-                                                         "\nYou have to state at least 1 and at most 9 ingredients.");
+                                                         "\nYou have to provide at least 1 and at most 9 ingredients.");
         comments.put("item.recipe.shapedIngredients", "The ingredients in case \"shaped\" is enabled." +
-                                                      "\nThe shape may differ from the original 3x3. For example it can be 2x3, 3x2 or 2x2.");
-//        comments.put("item.recipe.shapedRows", "The shape of the recipe in case \"shaped\" is enabled." +
-//                                               "\nIf you want a 2x2 shaped recipe, just remove one row and make the others 2 characters long.");
-//        comments.put("item.recipe.shapedIngredients", "The ingredients of the recipe in case \"shaped\" is enabled.");
+                                                      "\nThe shape may differ from the original 3x3. For example it can be 2x3, 3x2 or 2x2." +
+                                                      "\nYou have to provide at least 1 and at most 3 rows and at least 1 and at most 3 ingredients per row.");
     }
 
-    public static void load() throws IOException {
+    public static boolean load() throws IOException {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(FlowStyle.BLOCK);
         options.setPrettyFlow(true);
@@ -93,8 +93,7 @@ public class Config {
             Map<Integer, String> parents = new HashMap<>();
             int lastIndent = 0;
             String[] lines = yaml.dumpAsMap(config).split("\n");
-            StringBuilder sb = new StringBuilder("# The explanations in this config are not very long, to get a more in depth explanation," +
-                                                 "\n# Check out the Github or Spigot website:" +
+                StringBuilder sb = new StringBuilder("# VoidTotem version " + VoidTotem.getInstance().getDescription().getVersion() +
                                                  "\n# Github: https://github.com/Rapha149/VoidTotem" +
                                                  "\n# Spigot: " + Updates.SPIGOT_URL + "\n");
             for (String line : lines) {
@@ -136,11 +135,13 @@ public class Config {
             writer.write(sb.toString());
         }
 
+        AtomicBoolean mistakes = new AtomicBoolean(false);
         Logger logger = VoidTotem.getInstance().getLogger();
         config.effects.list.forEach(effect -> {
             if (PotionEffectType.getById(effect.id) == null) {
                 logger.severe("There's no potion effect with the id \"" + effect.id + "\"");
                 effect.valid = false;
+                mistakes.set(true);
             }
         });
 
@@ -150,16 +151,19 @@ public class Config {
             if (Material.getMaterial(result.item.toUpperCase()) == null) {
                 logger.severe("The result item \"" + result.item + "\" does not exist.");
                 item.valid = false;
+                mistakes.set(true);
             }
 
             if(result.count <= 0 || result.count > 127) {
                 logger.severe("The count of the result item has to be between 1 and 127.");
                 item.valid = false;
+                mistakes.set(true);
             }
 
             if(!wrapper.verifyNBT(result.nbt)) {
                 logger.severe("Can't read result item nbt string.");
                 item.valid = false;
+                mistakes.set(true);
             }
 
             RecipeData recipe = item.recipe;
@@ -167,17 +171,20 @@ public class Config {
                 if(recipe.shapelessIngredients.size() <= 0 || recipe.shapelessIngredients.size() > 9) {
                     logger.severe("You specified an invalid amount of ingredients.");
                     item.valid = false;
+                    mistakes.set(true);
                 }
             } else {
                 if(recipe.shapedIngredients.size() <= 0 || recipe.shapedIngredients.size() > 3) {
                     logger.severe("You specified an invalid amount of ingredient rows.");
                     item.valid = false;
+                    mistakes.set(true);
                 }
                 for (int i = 0; i < recipe.shapedIngredients.size(); i++) {
                     int length = recipe.shapedIngredients.get(i).split("\\|").length;
                     if(length <= 0 || length > 3) {
                         logger.severe("The row " + (i + 1) + " has an invalid amount of ingredients.");
                         item.valid = false;
+                        mistakes.set(true);
                     }
                 }
             }
@@ -187,9 +194,12 @@ public class Config {
                 if (Material.getMaterial(ingredient.toUpperCase()) == null) {
                     logger.severe("The ingredient item \"" + ingredient + "\" does not exist.");
                     item.valid = false;
+                    mistakes.set(true);
                 }
             });
         }
+
+        return !mistakes.get();
     }
 
     public static Config get() {
