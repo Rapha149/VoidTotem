@@ -20,7 +20,8 @@ public class ReloadCommand implements CommandExecutor {
                 VoidTotem.getInstance().loadRecipe();
             } catch (IOException e) {
                 e.printStackTrace();
-                sender.sendMessage("§cAn error occured. Check the console for details.");
+                if (sender instanceof Player)
+                    sender.sendMessage("§cAn error occured. Check the console for details.");
             }
         } else
             sender.sendMessage("§cNo permission.");
