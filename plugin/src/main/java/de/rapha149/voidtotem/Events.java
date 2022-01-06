@@ -42,7 +42,7 @@ public class Events implements Listener {
         ItemStack usedItem = null;
         PlayerInventory inv = player.getInventory();
         if (config.item.customRecipe) {
-            if (!config.item.valid)
+            if (!config.item.result.valid)
                 return;
 
             if (config.item.hasToBeInHand) {

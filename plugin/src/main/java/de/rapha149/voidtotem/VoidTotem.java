@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static de.rapha149.voidtotem.Messages.getMessage;
+
 public final class VoidTotem extends JavaPlugin {
 
     private final NamespacedKey RECIPE_KEY = new NamespacedKey(this, "void_totem");
@@ -41,6 +43,8 @@ public final class VoidTotem extends JavaPlugin {
             throw new IllegalStateException("VoidTotem does not fully support the server version \"" + nmsVersion + "\"");
         }
 
+        Messages.loadMessages();
+
         try {
             Config.load();
         } catch (IOException e) {
@@ -55,23 +59,23 @@ public final class VoidTotem extends JavaPlugin {
             String version = Updates.getAvailableVersion();
             if (version != null) {
                 if (version.isEmpty())
-                    getLogger().info("Your version of this plugin is up to date!");
+                    getLogger().info(getMessage("plugin.up_to_date"));
                 else {
-                    getLogger().warning("There's a new version available for this plugin: " + version);
-                    getLogger().warning("You can download it from: " + Updates.SPIGOT_URL);
+                    for (String line : getMessage("plugin.outdated").split("\n"))
+                        getLogger().warning(line.replace("%version%", version).replace("%url%", Updates.SPIGOT_URL));
                 }
             }
         }
 
         loadRecipe();
-        getCommand("voidtotemreload").setExecutor(new ReloadCommand());
+        new VoidTotemCommand(getCommand("voidtotem"));
         getServer().getPluginManager().registerEvents(new Events(), this);
-        getLogger().info("Plugin enabled.");
+        getLogger().info(getMessage("plugin.enable"));
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("Plugin disabled.");
+        getLogger().info(getMessage("plugin.disable"));
     }
 
     public static VoidTotem getInstance() {
@@ -137,12 +141,12 @@ public final class VoidTotem extends JavaPlugin {
         if (Streams.stream(Bukkit.recipeIterator()).anyMatch(recipe ->
                 (recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().equals(RECIPE_KEY) ||
                  (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(RECIPE_KEY))))) {
-            getLogger().warning("Old recipe could not be removed. If you changed the recipe, please restart the server for the changed to take affect.");
+            getLogger().warning(getMessage("old_recipe_not_removed"));
             return;
         }
 
         ItemData itemData = Config.get().item;
-        if (itemData.customRecipe && itemData.valid) {
+        if (itemData.customRecipe && itemData.result.valid && itemData.recipe.valid) {
             ResultData resultData = itemData.result;
             ItemStack result = wrapper.addIdentifier(wrapper.applyNBT(new ItemStack(Material.getMaterial(resultData.item.toUpperCase()),
                     resultData.count), resultData.nbt));
@@ -180,7 +184,7 @@ public final class VoidTotem extends JavaPlugin {
                 try {
                     Bukkit.addRecipe(recipe);
                 } catch (IllegalStateException e) {
-                    getLogger().warning("Old recipe could not be removed. If you changed the recipe, please restart the server for the changed to take affect.");
+                    getLogger().warning(getMessage("old_recipe_not_removed"));
                 }
             }
         }

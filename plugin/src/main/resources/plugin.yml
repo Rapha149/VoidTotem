@@ -7,8 +7,10 @@ api-version: 1.13
 website: https://github.com/Rapha149/VoidTotem
 
 commands:
-  voidtotemreload:
-    permission: voidtotem.reload
+  voidtotem:
+    description: VoidTotem command.
+    permission: voidtotem
+    aliases: [vt]
 
 permissions:
   voidtotem.*:
@@ -17,3 +19,12 @@ permissions:
   voidtotem.reload:
     children:
       voidtotem: true
+  voidtotem.giveitem:
+    children:
+      voidtotem: true
+  voidtotem.giveitem.*:
+    children:
+      voidtotem.giveitem: true
+  voidtotem.giveitem.others:
+    children:
+      voidtotem.giveitem: true

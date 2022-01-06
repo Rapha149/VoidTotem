@@ -22,6 +22,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static de.rapha149.voidtotem.Messages.getMessage;
+
 public class Config {
 
     private static Map<String, String> comments = new HashMap<>();
@@ -62,7 +64,11 @@ public class Config {
                                           "\nPlease also note: if you change the resulting item, earlier crafted totems will still work.");
         comments.put("item.result", "The item to use as a totem item and the result of the recipe.");
         comments.put("item.result.nbt", "If you want to include ' in your nbt string, you can escape them using ''" +
-                                        "\n\"HideFlags: 1\" which is given by default is used to hide the enchantments.");
+                                        "\n\"HideFlags: 1\" which is given by default is used to hide the enchantments." +
+                                        "\nIf you don't know how NBT works, see this tutorial: https://minecraft.fandom.com/wiki/Tutorials/Command_NBT_tags" +
+                                        "\n or use a /give generator and copy everything from { to }. Give command generator examples:" +
+                                        "\n - https://mcstacker.net (click on the \"/give\" button)" +
+                                        "\n - https://www.gamergeeks.net/apps/minecraft/give-command-generator");
         comments.put("item.recipe.shaped", "Whether the recipe should be a shaped recipe.");
         comments.put("item.recipe.shapelessIngredients", "The ingredients in case \"shaped\" is disabled." +
                                                          "\nYou have to provide at least 1 and at most 9 ingredients.");
@@ -94,7 +100,7 @@ public class Config {
             Map<Integer, String> parents = new HashMap<>();
             int lastIndent = 0;
             String[] lines = yaml.dumpAsMap(config).split("\n");
-                StringBuilder sb = new StringBuilder("# VoidTotem version " + VoidTotem.getInstance().getDescription().getVersion() +
+            StringBuilder sb = new StringBuilder("# VoidTotem version " + VoidTotem.getInstance().getDescription().getVersion() +
                                                  "\n# Github: https://github.com/Rapha149/VoidTotem" +
                                                  "\n# Spigot: " + Updates.SPIGOT_URL + "\n");
             for (String line : lines) {
@@ -140,7 +146,7 @@ public class Config {
         Logger logger = VoidTotem.getInstance().getLogger();
         config.effects.list.forEach(effect -> {
             if (PotionEffectType.getById(effect.id) == null) {
-                logger.severe("There's no potion effect with the id \"" + effect.id + "\"");
+                logger.severe(getMessage("config.potion_effect_not_found").replace("%id%", String.valueOf(effect.id)));
                 effect.valid = false;
                 mistakes.set(true);
             }
@@ -150,41 +156,43 @@ public class Config {
         if (item.customRecipe) {
             ResultData result = config.item.result;
             if (Material.getMaterial(result.item.toUpperCase()) == null) {
-                logger.severe("The result item \"" + result.item + "\" does not exist.");
-                item.valid = false;
+                logger.severe(getMessage("config.recipe.result_item.not_found").replace("%item%", result.item));
+                result.valid = false;
                 mistakes.set(true);
             }
 
-            if(result.count <= 0 || result.count > 127) {
-                logger.severe("The count of the result item has to be between 1 and 127.");
-                item.valid = false;
+            if (result.count <= 0 || result.count > 127) {
+                logger.severe(getMessage("config.recipe.result_item.invalid_count").replace("%limit_down%", "1")
+                        .replace("%limit_up%", "127"));
+                result.valid = false;
                 mistakes.set(true);
             }
 
-            if(!wrapper.verifyNBT(result.nbt)) {
-                logger.severe("Can't read result item nbt string.");
-                item.valid = false;
+            if (!wrapper.verifyNBT(result.nbt)) {
+                logger.severe(getMessage("config.recipe.result_item.invalid_nbt"));
+                result.valid = false;
                 mistakes.set(true);
             }
 
             RecipeData recipe = item.recipe;
-            if(!recipe.shaped) {
-                if(recipe.shapelessIngredients.size() <= 0 || recipe.shapelessIngredients.size() > 9) {
-                    logger.severe("You specified an invalid amount of ingredients.");
-                    item.valid = false;
+            if (!recipe.shaped) {
+                if (recipe.shapelessIngredients.size() <= 0 || recipe.shapelessIngredients.size() > 9) {
+                    logger.severe(getMessage("config.recipe.shapeless_ingredients_invalid_count"));
+                    recipe.valid = false;
                     mistakes.set(true);
                 }
             } else {
-                if(recipe.shapedIngredients.size() <= 0 || recipe.shapedIngredients.size() > 3) {
-                    logger.severe("You specified an invalid amount of ingredient rows.");
-                    item.valid = false;
+                if (recipe.shapedIngredients.size() <= 0 || recipe.shapedIngredients.size() > 3) {
+                    logger.severe(getMessage("config.recipe.shaped.ingredient_rows_invalid_count"));
+                    recipe.valid = false;
                     mistakes.set(true);
                 }
                 for (int i = 0; i < recipe.shapedIngredients.size(); i++) {
                     int length = recipe.shapedIngredients.get(i).split("\\|").length;
-                    if(length <= 0 || length > 3) {
-                        logger.severe("The row " + (i + 1) + " has an invalid amount of ingredients.");
-                        item.valid = false;
+                    if (length <= 0 || length > 3) {
+                        logger.severe(getMessage("config.recipe.shaped.ingredients_invalid_count")
+                                .replace("%row%", String.valueOf(i + 1)));
+                        recipe.valid = false;
                         mistakes.set(true);
                     }
                 }
@@ -193,8 +201,8 @@ public class Config {
             (recipe.shaped ? recipe.shapedIngredients.stream().flatMap(row -> Arrays.stream(row.split("\\|")))
                     .map(String::trim) : recipe.shapelessIngredients.stream()).distinct().forEach(ingredient -> {
                 if (Material.getMaterial(ingredient.toUpperCase()) == null) {
-                    logger.severe("The ingredient item \"" + ingredient + "\" does not exist.");
-                    item.valid = false;
+                    logger.severe(getMessage("config.recipe.ingredient_item_invalid").replace("%item%", ingredient));
+                    recipe.valid = false;
                     mistakes.set(true);
                 }
             });
@@ -264,13 +272,13 @@ public class Config {
         public ResultData result = new ResultData();
         public RecipeData recipe = new RecipeData();
 
-        public transient boolean valid = true;
-
         public static class ResultData {
 
             public String item = "totem_of_undying";
             public int count = 1;
             public String nbt = "{display: {Name: \"{\\\"text\\\": \\\"§6Void §eTotem\\\"}\"}, HideFlags: 1, Enchantments: [{id: \"minecraft:unbreaking\", lvl: 1}]}";
+
+            public transient boolean valid = true;
         }
 
         public static class RecipeData {
@@ -280,6 +288,8 @@ public class Config {
             public List<String> shapedIngredients = Arrays.asList("chorus_fruit | diamond | chorus_fruit",
                     "ender_pearl | totem_of_undying | ender_pearl",
                     "chorus_fruit | diamond | chorus_fruit");
+
+            public transient boolean valid = true;
         }
     }
 }
