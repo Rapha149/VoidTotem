@@ -126,7 +126,7 @@ If you need any help regarding the config, don't hesitate to ask, I tried to exp
 
 ### Messages
 
-You can also change messages in the `messages.yml` file!
+You can change all messages in the `messages.yml` file!
 
 ## Commands
 
