@@ -13,11 +13,6 @@ If you are resurrected by the totem you will be teleported onto a nearby block w
 
 The default `config.yml` looks like this (without the comments):
 ```yml
-# The explanations in this config are not very long, to get a more in depth explanation,
-# Check out the Github or Spigot website:
-# Github: https://github.com/Rapha149/VoidTotem
-# Spigot: https://www.spigotmc.org/resources/null.-1
-
 # Whether to check for updates on enabling.
 checkForUpdates: true
 
@@ -88,7 +83,9 @@ item:
   hasToBeInHand: true
 
   # Whether to use a custom item and recipe for the totem item.
-  # Please note: if you change the resulting item, earlier crafted totems will still work.
+  # If you made a mistake with the custom item you will be notified in the console and the item won't work.
+  # Please note: if you've changed something for the recipe and reloaded the config you may have to rejoin for the changes to take effect.
+  # Please also note: if you change the resulting item, earlier crafted totems will still work.
   customRecipe: false
 
   # The item to use as a totem item and the result of the recipe.
@@ -106,7 +103,7 @@ item:
     shaped: true
 
     # The ingredients in case "shaped" is disabled.
-    # You have to state at least 1 and at most 9 ingredients.
+    # You have to provide at least 1 and at most 9 ingredients.
     shapelessIngredients:
     - totem_of_undying
     - ender_pearl
@@ -114,6 +111,7 @@ item:
 
     # The ingredients in case "shaped" is enabled.
     # The shape may differ from the original 3x3. For example it can be 2x3, 3x2 or 2x2.
+    # You have to provide at least 1 and at most 3 rows and at least 1 and at most 3 ingredients per row.
     shapedIngredients:
     - chorus_fruit | diamond | chorus_fruit
     - ender_pearl | totem_of_undying | ender_pearl
