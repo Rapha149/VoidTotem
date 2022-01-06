@@ -41,7 +41,7 @@ public class Updates {
                 version = new BufferedReader(new InputStreamReader(conn.getInputStream())).readLine();
             }
 
-            String result = compare(plugin.getDescription().getVersion(), version) < 0 ? version : null;
+            String result = compare(plugin.getDescription().getVersion(), version) < 0 ? version : "";
             return result;
         } catch (ConnectException e) {
             plugin.getLogger().warning("Could not access https://spigotmc.org/ to check for updates.");

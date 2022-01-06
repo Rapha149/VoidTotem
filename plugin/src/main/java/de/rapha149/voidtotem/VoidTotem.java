@@ -53,11 +53,13 @@ public final class VoidTotem extends JavaPlugin {
 
         if (Config.get().checkForUpdates) {
             String version = Updates.getAvailableVersion();
-            if (version == null)
-                getLogger().info("Your version of this plugin is up to date!");
-            else {
-                getLogger().warning("There's a new version available for this plugin: " + version);
-                getLogger().warning("You can download it from: " + Updates.SPIGOT_URL);
+            if (version != null) {
+                if (version.isEmpty())
+                    getLogger().info("Your version of this plugin is up to date!");
+                else {
+                    getLogger().warning("There's a new version available for this plugin: " + version);
+                    getLogger().warning("You can download it from: " + Updates.SPIGOT_URL);
+                }
             }
         }
 
@@ -132,7 +134,7 @@ public final class VoidTotem extends JavaPlugin {
     public void loadRecipe() {
         wrapper.removeRecipe(RECIPE_KEY);
 
-        if(Streams.stream(Bukkit.recipeIterator()).anyMatch(recipe ->
+        if (Streams.stream(Bukkit.recipeIterator()).anyMatch(recipe ->
                 (recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().equals(RECIPE_KEY) ||
                  (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(RECIPE_KEY))))) {
             getLogger().warning("Old recipe could not be removed. If you changed the recipe, please restart the server for the changed to take affect.");
