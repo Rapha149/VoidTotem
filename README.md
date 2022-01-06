@@ -6,7 +6,7 @@ If you are resurrected by the totem you will be teleported onto a nearby block w
 
 ## URLS
 
-- Spigot (coming soon™)
+- [Spigot](https://www.spigotmc.org/resources/void-totem.99003/)
 - [bStats](https://bstats.org/plugin/bukkit/Void%20Totem/13802)
 
 ## Config
