@@ -135,7 +135,7 @@ The alias is `/vt`
 Sub commands are:
 - `/voidtotem reload` - Reloads the config.
 - `/voidtotem giveitem [Player]` - Gives you or another player a void totem item. When using via the console the player has to be specified.  
-  If `customRecipe` is disabled on command execution the item that was given to the player will also work when `customRecipe` is enabled.
+  If `customRecipe` was disabled on command execution, the item that was given to the player will also work when `customRecipe` is enabled.
 
 ## Permissions
 
