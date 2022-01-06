@@ -58,7 +58,8 @@ public class Config {
                                            "\nIf enabled, the totem has to be in the mainhand or the offhand, just like a normal totem.");
         comments.put("item.customRecipe", "Whether to use a custom item and recipe for the totem item." +
                                           "\nIf you made a mistake with the custom item you will be notified in the console and the item won't work." +
-                                          "\nPlease note: if you change the resulting item, earlier crafted totems will still work.");
+                                          "\nPlease note: if you've changed something for the recipe and reloaded the config you may have to rejoin for the changes to take effect." +
+                                          "\nPlease also note: if you change the resulting item, earlier crafted totems will still work.");
         comments.put("item.result", "The item to use as a totem item and the result of the recipe.");
         comments.put("item.result.nbt", "If you want to include ' in your nbt string, you can escape them using ''" +
                                         "\n\"HideFlags: 1\" which is given by default is used to hide the enchantments.");
