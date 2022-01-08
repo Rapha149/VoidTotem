@@ -6,7 +6,7 @@ If you are resurrected by the totem you will be teleported onto a nearby block w
 
 ## URLS
 
-- Spigot (coming soon™)
+- [Spigot](https://www.spigotmc.org/resources/void-totem.99003/)
 - [bStats](https://bstats.org/plugin/bukkit/Void%20Totem/13802)
 
 ## Config
@@ -95,6 +95,10 @@ item:
 
     # If you want to include ' in your nbt string, you can escape them using ''
     # "HideFlags: 1" which is given by default is used to hide the enchantments.
+    # If you don't know how NBT works, see this tutorial: https://minecraft.fandom.com/wiki/Tutorials/Command_NBT_tags
+    #  or use a /give generator and copy everything from { to }. Give command generator examples:
+    #  - https://mcstacker.net (click on the "/give" button)
+    #  - https://www.gamergeeks.net/apps/minecraft/give-command-generator
     nbt: '{display: {Name: "{\"text\": \"§6Void §eTotem\"}"}, HideFlags: 1, Enchantments:
       [{id: "minecraft:unbreaking", lvl: 1}]}'
 
@@ -122,12 +126,22 @@ If you need any help regarding the config, don't hesitate to ask, I tried to exp
 
 ### Messages
 
-This plugin does not provide different languages or lang files because it only has one command and console messages so I don't think there's any need for it.
+You can change all messages in the `messages.yml` file!
 
 ## Commands
 
-The plugin has one command: `/voidtotemreload`  
-It reloads the configuration. The permission is `voidtotem.reload`
+The plugin has one basic command: `/voidtotem`  
+The alias is `/vt`  
+Sub commands are:
+- `/voidtotem reload` - Reloads the config.
+- `/voidtotem giveitem [Player]` - Gives you or another player a void totem item. When using via the console the player has to be specified.  
+  If `customRecipe` was disabled on command execution, the item that was given to the player will also work when `customRecipe` is enabled.
+
+## Permissions
+
+- `voidtotem.reload` - Permission for `/voidtotem reload`
+- `voidtotem.giveitem` - Permission for `/voidtotem giveitem`
+- `voidtotem.giveitem.others` - Permission for `/voidtotem giveitem <Player>`
 
 ## Additional information
 
