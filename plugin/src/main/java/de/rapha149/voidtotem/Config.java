@@ -81,6 +81,8 @@ public class Config {
                                          "\n - <gradient:yellow:gold>Text</gradient> = gradient from yellow to gold" +
                                          "\n - <gradient:#ff0000:#ff6f00:#ffff00>Text</gradient> = gradient from red over orange to yellow (with hex colors)" +
                                          "\nThe adventure syntax is described here: https://docs.adventure.kyori.net/minimessage#format" +
+                                         "\nPlease note that hex colors, rainbows and gradients are NOT supported in 1.15 and lower." +
+                                         "\nYou should only use them in 1.16 and above. They will look very weird in 1.15 and lower." +
                                          "\n\nIf given in the NBT string, the display name in the NBT string will override this." +
                                          "\nSet to \"null\" to disable.");
         comments.put("item.result.lore", "The lore of the item as an array. Each array item is a line in the lore." +
