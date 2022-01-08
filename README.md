@@ -93,14 +93,37 @@ item:
     item: totem_of_undying
     count: 1
 
+    # The display name of the item.
+    # You can use "&" and a color code to colorize the chat or use the adventure text syntax. A few examples:
+    #  - &e&lText = yellow and bold
+    #  - <yellow><bold>Text = yellow and bold
+    #  - <#ff0000>Text = red hex color
+    #  - <rainbow>Text</rainbow> = rainbow colors
+    #  - <gradient:yellow:gold>Text</gradient> = gradient from yellow to gold
+    #  - <gradient:#ff0000:#ff6f00:#ffff00>Text</gradient> = gradient from red over orange to yellow (with hex colors)
+    # The adventure syntax is described here: https://docs.adventure.kyori.net/minimessage#format
+    # 
+    # If given in the NBT string, the display name in the NBT string will override this.
+    # Set to "null" to disable.
+    name: '&6Void &eTotem'
+
+    # The lore of the item as an array. Each array item is a line in the lore.
+    # You can use the same format as for "name".
+    # If given in the NBT string, the lore in the NBT string will override this.
+    # Set to "[]" to disable.
+    lore:
+    - '&7Save yourself from the void!'
+
+    # The NBT string to apply to the item.
+    # Set to "{}" to disable.
     # If you want to include ' in your nbt string, you can escape them using ''
     # "HideFlags: 1" which is given by default is used to hide the enchantments.
+    # 
     # If you don't know how NBT works, see this tutorial: https://minecraft.fandom.com/wiki/Tutorials/Command_NBT_tags
     #  or use a /give generator and copy everything from { to }. Give command generator examples:
     #  - https://mcstacker.net (click on the "/give" button)
     #  - https://www.gamergeeks.net/apps/minecraft/give-command-generator
-    nbt: '{display: {Name: "{\"text\": \"§6Void §eTotem\"}"}, HideFlags: 1, Enchantments:
-      [{id: "minecraft:unbreaking", lvl: 1}]}'
+    nbt: '{HideFlags: 1, Enchantments: [{id: "minecraft:unbreaking", lvl: 1}]}'
 
   recipe:
     # Whether the recipe should be a shaped recipe.
