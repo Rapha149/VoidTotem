@@ -1,9 +1,7 @@
 package de.rapha149.voidtotem;
 
-import de.rapha149.voidtotem.Config.ItemData;
 import de.rapha149.voidtotem.version.VersionWrapper;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -80,14 +78,8 @@ public class VoidTotemCommand implements CommandExecutor, TabCompleter {
                 }
 
                 VersionWrapper wrapper = VoidTotem.getInstance().wrapper;
-                ItemData itemData = Config.get().item;
-                ItemStack item;
-                if (!itemData.customRecipe)
-                    item = new ItemStack(Material.TOTEM_OF_UNDYING);
-                else if (itemData.result.valid) {
-                    item = wrapper.applyNBT(new ItemStack(Material.getMaterial(itemData.result.item.toUpperCase()), itemData.result.count),
-                            itemData.result.nbt);
-                } else {
+                ItemStack item = Config.get().item.result.getItemStack();
+                if(item == null) {
                     sender.sendMessage(getMessage("giveitem.item_not_valid"));
                     break;
                 }

@@ -3,8 +3,13 @@ package de.rapha149.voidtotem;
 import de.rapha149.voidtotem.Config.ItemData.RecipeData;
 import de.rapha149.voidtotem.Config.ItemData.ResultData;
 import de.rapha149.voidtotem.version.VersionWrapper;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
@@ -21,10 +26,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static de.rapha149.voidtotem.Messages.getMessage;
 
 public class Config {
+
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    private static final LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
 
     private static Map<String, String> comments = new HashMap<>();
     private static Config config;
@@ -63,9 +72,26 @@ public class Config {
                                           "\nPlease note: if you've changed something for the recipe and reloaded the config you may have to rejoin for the changes to take effect." +
                                           "\nPlease also note: if you change the resulting item, earlier crafted totems will still work.");
         comments.put("item.result", "The item to use as a totem item and the result of the recipe.");
-        comments.put("item.result.nbt", "If you want to include ' in your nbt string, you can escape them using ''" +
+        comments.put("item.result.name", "The display name of the item." +
+                                         "\nYou can use \"&\" and a color code to colorize the chat or use the adventure text syntax. A few examples:" +
+                                         "\n - &e&lText = yellow and bold" +
+                                         "\n - <yellow><bold>Text = yellow and bold" +
+                                         "\n - <#ff0000>Text = red hex color" +
+                                         "\n - <rainbow>Text</rainbow> = rainbow colors" +
+                                         "\n - <gradient:yellow:gold>Text</gradient> = gradient from yellow to gold" +
+                                         "\n - <gradient:#ff0000:#ff6f00:#ffff00>Text</gradient> = gradient from red over orange to yellow (with hex colors)" +
+                                         "\nThe adventure syntax is described here: https://docs.adventure.kyori.net/minimessage#format" +
+                                         "\n\nIf given in the NBT string, the display name in the NBT string will override this." +
+                                         "\nSet to \"null\" to disable.");
+        comments.put("item.result.lore", "The lore of the item as an array. Each array item is a line in the lore." +
+                                         "\nYou can use the same format as for \"name\"." +
+                                         "\nIf given in the NBT string, the lore in the NBT string will override this." +
+                                         "\nSet to \"[]\" to disable.");
+        comments.put("item.result.nbt", "The NBT string to apply to the item." +
+                                        "\nSet to \"{}\" to disable." +
+                                        "\nIf you want to include ' in your nbt string, you can escape them using ''" +
                                         "\n\"HideFlags: 1\" which is given by default is used to hide the enchantments." +
-                                        "\nIf you don't know how NBT works, see this tutorial: https://minecraft.fandom.com/wiki/Tutorials/Command_NBT_tags" +
+                                        "\n\nIf you don't know how NBT works, see this tutorial: https://minecraft.fandom.com/wiki/Tutorials/Command_NBT_tags" +
                                         "\n or use a /give generator and copy everything from { to }. Give command generator examples:" +
                                         "\n - https://mcstacker.net (click on the \"/give\" button)" +
                                         "\n - https://www.gamergeeks.net/apps/minecraft/give-command-generator");
@@ -81,6 +107,7 @@ public class Config {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(FlowStyle.BLOCK);
         options.setPrettyFlow(true);
+        options.setSplitLines(false);
         Representer representer = new Representer();
         representer.setPropertyUtils(new CustomPropertyUtils());
         Yaml yaml = new Yaml(new CustomClassLoaderConstructor(VoidTotem.getInstance().getClass().getClassLoader()), representer, options);
@@ -139,7 +166,7 @@ public class Config {
                 sb.append(line + "\n");
             }
 
-            writer.write(sb.toString());
+            writer.write(sb.toString().replaceAll("\\[\\n\\s+\\]", "[]"));
         }
 
         AtomicBoolean mistakes = new AtomicBoolean(false);
@@ -153,8 +180,8 @@ public class Config {
         });
 
         ItemData item = config.item;
+        ResultData result = config.item.result;
         if (item.customRecipe) {
-            ResultData result = config.item.result;
             if (Material.getMaterial(result.item.toUpperCase()) == null) {
                 logger.severe(getMessage("config.recipe.result_item.not_found").replace("%item%", result.item));
                 result.valid = false;
@@ -208,11 +235,32 @@ public class Config {
             });
         }
 
+        if (item.result.valid) {
+            if (!item.customRecipe) {
+                result.itemStack = wrapper.addIdentifier(new ItemStack(Material.TOTEM_OF_UNDYING));
+            } else if (result.valid) {
+                ItemStack itemStack = new ItemStack(Material.getMaterial(result.item.toUpperCase()), result.count);
+                ItemMeta meta = itemStack.getItemMeta();
+                if (result.name != null)
+                    meta.setDisplayName(colorize(result.name));
+                if (!result.lore.isEmpty())
+                    meta.setLore(result.lore.stream().map(Config::colorize).collect(Collectors.toList()));
+                itemStack.setItemMeta(meta);
+                itemStack = wrapper.applyNBT(itemStack, result.nbt);
+                result.itemStack = wrapper.addIdentifier(itemStack);
+            } else
+                result.itemStack = null;
+        }
+
         return !mistakes.get();
     }
 
     public static Config get() {
         return config;
+    }
+
+    private static String colorize(String str) {
+        return SERIALIZER.serialize(MINI_MESSAGE.parse(ChatColor.translateAlternateColorCodes('&', str)));
     }
 
     public boolean checkForUpdates = true;
@@ -276,9 +324,16 @@ public class Config {
 
             public String item = "totem_of_undying";
             public int count = 1;
-            public String nbt = "{display: {Name: \"{\\\"text\\\": \\\"§6Void §eTotem\\\"}\"}, HideFlags: 1, Enchantments: [{id: \"minecraft:unbreaking\", lvl: 1}]}";
+            public String name = "&6Void &eTotem";
+            public List<String> lore = Arrays.asList("&7Save yourself from the void!");
+            public String nbt = "{HideFlags: 1, Enchantments: [{id: \"minecraft:unbreaking\", lvl: 1}]}";
 
             public transient boolean valid = true;
+            private transient ItemStack itemStack;
+
+            public ItemStack getItemStack() {
+                return itemStack != null ? itemStack.clone() : null;
+            }
         }
 
         public static class RecipeData {

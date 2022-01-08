@@ -3,7 +3,6 @@ package de.rapha149.voidtotem;
 import com.google.common.collect.Streams;
 import de.rapha149.voidtotem.Config.ItemData;
 import de.rapha149.voidtotem.Config.ItemData.RecipeData;
-import de.rapha149.voidtotem.Config.ItemData.ResultData;
 import de.rapha149.voidtotem.Metrics.AdvancedPie;
 import de.rapha149.voidtotem.Metrics.DrilldownPie;
 import de.rapha149.voidtotem.Metrics.SimplePie;
@@ -147,10 +146,7 @@ public final class VoidTotem extends JavaPlugin {
 
         ItemData itemData = Config.get().item;
         if (itemData.customRecipe && itemData.result.valid && itemData.recipe.valid) {
-            ResultData resultData = itemData.result;
-            ItemStack result = wrapper.addIdentifier(wrapper.applyNBT(new ItemStack(Material.getMaterial(resultData.item.toUpperCase()),
-                    resultData.count), resultData.nbt));
-
+            ItemStack result = itemData.result.getItemStack();
             RecipeData recipeData = itemData.recipe;
             if (!recipeData.shaped) {
                 ShapelessRecipe recipe = new ShapelessRecipe(RECIPE_KEY, result);
