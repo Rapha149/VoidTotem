@@ -56,13 +56,13 @@ effects:
   # A list of ids can be found here: https://minecraft.fandom.com/wiki/Effect#Effect_list
   #  (Please only look at values that are present in the Java Edition)
   list:
-  - id: 10  # regeneration
+  - id: 10  # REGENERATION
     duration: 45
     amplifier: 1
-  - id: 12  # fire_resistance
+  - id: 12  # FIRE_RESISTANCE
     duration: 40
     amplifier: 0
-  - id: 22  # absorption
+  - id: 22  # ABSORPTION
     duration: 5
     amplifier: 1
 
@@ -102,6 +102,8 @@ item:
     #  - <gradient:yellow:gold>Text</gradient> = gradient from yellow to gold
     #  - <gradient:#ff0000:#ff6f00:#ffff00>Text</gradient> = gradient from red over orange to yellow (with hex colors)
     # The adventure syntax is described here: https://docs.adventure.kyori.net/minimessage#format
+    # Please note that hex colors, rainbows and gradients are NOT supported in 1.15 and lower.
+    # You should only use them in 1.16 and above. They will look very weird in 1.15 and lower.
     # 
     # If given in the NBT string, the display name in the NBT string will override this.
     # Set to "null" to disable.
