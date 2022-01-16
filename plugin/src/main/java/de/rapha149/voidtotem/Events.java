@@ -182,6 +182,9 @@ public class Events implements Listener {
                             totemEffects.run();
                     });
 
+                    if (config.addToTotemStatistic)
+                        player.incrementStatistic(Statistic.USE_ITEM, Material.TOTEM_OF_UNDYING);
+
                     found = true;
                     break;
                 }
