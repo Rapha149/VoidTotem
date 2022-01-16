@@ -29,6 +29,9 @@ searchDistance: 100
 # If enabled the totem will only resurrect people if they are below the downward height limit.
 patchKillCommand: true
 
+# If enabled, the used totem statistic will be increased for the player if saved from the void.
+addToTotemStatistic: true
+
 randomization:
   # Whether to randomize search for suitable blocks.
   enabled: true
@@ -56,13 +59,13 @@ effects:
   # A list of ids can be found here: https://minecraft.fandom.com/wiki/Effect#Effect_list
   #  (Please only look at values that are present in the Java Edition)
   list:
-  - id: 10  # REGENERATION
+  - id: 10  # regeneration
     duration: 45
     amplifier: 1
-  - id: 12  # FIRE_RESISTANCE
+  - id: 12  # fire_resistance
     duration: 40
     amplifier: 0
-  - id: 22  # ABSORPTION
+  - id: 22  # absorption
     duration: 5
     amplifier: 1
 
