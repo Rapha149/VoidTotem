@@ -29,8 +29,12 @@ searchDistance: 100
 # If enabled the totem will only resurrect people if they are below the downward height limit.
 patchKillCommand: true
 
-# If enabled, the used totem statistic will be increased for the player if saved from the void.
-addToTotemStatistic: true
+playerData:
+  # If enabled, the used totem statistic will be increased for the player if saved from the void.
+  totemStatistic: true
+
+  # If enabled, the player will receive the totem advancement upon resurrection if they did not have it before.
+  advancement: true
 
 randomization:
   # Whether to randomize search for suitable blocks.
