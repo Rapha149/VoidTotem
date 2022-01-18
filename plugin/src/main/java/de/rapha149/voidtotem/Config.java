@@ -47,7 +47,8 @@ public class Config {
         comments.put("patchKillCommand", "If disabled, the totem will save players from the /kill command." +
                                          "\nThis is due to the fact that the damage cause in the Spigot API is the same for the void and /kill." +
                                          "\nIf enabled the totem will only resurrect people if they are below the downward height limit.");
-        comments.put("addToTotemStatistic", "If enabled, the used totem statistic will be increased for the player if saved from the void.");
+        comments.put("playerData.totemStatistic", "If enabled, the used totem statistic will be increased for the player if saved from the void.");
+        comments.put("playerData.advancement", "If enabled, the player will receive the totem advancement upon resurrection if they did not have it before.");
         comments.put("randomization.enabled", "Whether to randomize search for suitable blocks.");
         comments.put("randomization.distanceStack", "How far to spread distance randomization." +
                                                     "\nFor example: if it's 10, 10 distances will be shuffled. The distances 0-9 will be shuffled," +
@@ -270,11 +271,17 @@ public class Config {
     public double healthTrigger = 0;
     public int searchDistance = 100;
     public boolean patchKillCommand = true;
-    public boolean addToTotemStatistic = true;
+    public PlayerData playerData = new PlayerData();
     public RandomizationData randomization = new RandomizationData();
     public EffectsData effects = new EffectsData();
     public AnimationData animation = new AnimationData();
     public ItemData item = new ItemData();
+
+    public static class PlayerData {
+
+        public boolean totemStatistic = true;
+        public boolean advancement = true;
+    }
 
     public static class RandomizationData {
 

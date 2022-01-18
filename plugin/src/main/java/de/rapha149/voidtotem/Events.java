@@ -2,6 +2,7 @@ package de.rapha149.voidtotem;
 
 import de.rapha149.voidtotem.version.VersionWrapper;
 import org.bukkit.*;
+import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -33,7 +34,6 @@ public class Events implements Listener {
         VersionWrapper wrapper = plugin.wrapper;
 
         double health = player.getHealth() + wrapper.getAbsorptionHearts(player) - event.getDamage();
-        System.out.println(wrapper.getAbsorptionHearts(player) + " | " + event.getDamage() + " | " + event.getFinalDamage() + " | " + health);
         if (health > config.healthTrigger)
             return;
         if (config.patchKillCommand && player.getLocation().getY() >= wrapper.getDownwardHeightLimit(player.getWorld()))
@@ -182,8 +182,14 @@ public class Events implements Listener {
                             totemEffects.run();
                     });
 
-                    if (config.addToTotemStatistic)
+                    if (config.playerData.totemStatistic)
                         player.incrementStatistic(Statistic.USE_ITEM, Material.TOTEM_OF_UNDYING);
+                    if (config.playerData.advancement) {
+                        AdvancementProgress progress = player.getAdvancementProgress(
+                                Bukkit.getAdvancement(NamespacedKey.minecraft("adventure/totem_of_undying")));
+                        if (!progress.isDone())
+                            progress.getRemainingCriteria().forEach(progress::awardCriteria);
+                    }
 
                     found = true;
                     break;

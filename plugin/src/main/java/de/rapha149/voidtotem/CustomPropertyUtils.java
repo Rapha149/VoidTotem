@@ -34,7 +34,7 @@ public class CustomPropertyUtils extends PropertyUtils {
     private final Map<Class<?>, Set<Property>> readableProperties = new LinkedHashMap<>();
     private BeanAccess beanAccess = BeanAccess.DEFAULT;
     private boolean allowReadOnlyProperties = false;
-    private boolean skipMissingProperties = false;
+    private boolean skipMissingProperties = true;
 
     private PlatformFeatureDetector platformFeatureDetector;
 
