@@ -11,7 +11,7 @@ If you are resurrected by the totem you will be teleported onto a nearby block w
 
 ## Config
 
-The default `config.yml` looks like this (without the comments):
+The default `config.yml` looks like this:
 ```yml
 # Whether to check for updates on enabling.
 checkForUpdates: true
