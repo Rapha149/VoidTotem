@@ -1,7 +1,9 @@
 package de.rapha149.voidtotem;
 
+import de.rapha149.voidtotem.Config.PlayerData.AdvancementData;
 import de.rapha149.voidtotem.version.VersionWrapper;
 import org.bukkit.*;
+import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -184,11 +186,19 @@ public class Events implements Listener {
 
                     if (config.playerData.totemStatistic)
                         player.incrementStatistic(Statistic.USE_ITEM, Material.TOTEM_OF_UNDYING);
-                    if (config.playerData.advancement) {
-                        AdvancementProgress progress = player.getAdvancementProgress(
-                                Bukkit.getAdvancement(NamespacedKey.minecraft("adventure/totem_of_undying")));
-                        if (!progress.isDone())
-                            progress.getRemainingCriteria().forEach(progress::awardCriteria);
+
+                    AdvancementData advancementData = config.playerData.advancement;
+                    if (advancementData.enabled && advancementData.valid) {
+                        Advancement advancement = Bukkit.getAdvancement(advancementData.key);
+                        if(advancement != null) {
+                            AdvancementProgress progress = player.getAdvancementProgress(advancement);
+                            if (!progress.isDone()) {
+                                List<String> criteria = advancementData.criteria;
+                                progress.getRemainingCriteria().stream()
+                                        .filter(criterion -> criteria.isEmpty() || criteria.contains(criterion))
+                                        .forEach(progress::awardCriteria);
+                            }
+                        }
                     }
 
                     found = true;

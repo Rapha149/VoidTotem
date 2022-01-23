@@ -2,12 +2,15 @@ package de.rapha149.voidtotem;
 
 import de.rapha149.voidtotem.Config.ItemData.RecipeData;
 import de.rapha149.voidtotem.Config.ItemData.ResultData;
+import de.rapha149.voidtotem.Config.PlayerData.AdvancementData;
 import de.rapha149.voidtotem.version.VersionWrapper;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
@@ -48,7 +51,9 @@ public class Config {
                                          "\nThis is due to the fact that the damage cause in the Spigot API is the same for the void and /kill." +
                                          "\nIf enabled the totem will only resurrect people if they are below the downward height limit.");
         comments.put("playerData.totemStatistic", "If enabled, the used totem statistic will be increased for the player if saved from the void.");
-        comments.put("playerData.advancement", "If enabled, the player will receive the totem advancement upon resurrection if they did not have it before.");
+        comments.put("playerData.advancement.enabled", "If enabled, the player will receive the totem advancement upon resurrection if they did not have it before.");
+        comments.put("playerData.advancement.advancement", "The advancement to grant the player. The advancement has to exist on the server.");
+        comments.put("playerData.advancement.criteria", "The criteria to set completed. Set to \"[]\" to complete the whole advancement.");
         comments.put("randomization.enabled", "Whether to randomize search for suitable blocks.");
         comments.put("randomization.distanceStack", "How far to spread distance randomization." +
                                                     "\nFor example: if it's 10, 10 distances will be shuffled. The distances 0-9 will be shuffled," +
@@ -175,6 +180,30 @@ public class Config {
 
         AtomicBoolean mistakes = new AtomicBoolean(false);
         Logger logger = VoidTotem.getInstance().getLogger();
+        AdvancementData advancement = config.playerData.advancement;
+        if(advancement.enabled) {
+            String[] keySplit = advancement.advancement.split(":");
+            if(keySplit.length != 2) {
+                logger.severe(getMessage("config.advancement.invalid_key").replace("%key%", advancement.advancement));
+                advancement.valid = false;
+                mistakes.set(true);
+            } else {
+                try {
+                    NamespacedKey key = new NamespacedKey(keySplit[0], keySplit[1]);
+                    if(Bukkit.getAdvancement(key) == null) {
+                        logger.severe(getMessage("config.advancement.not_found").replace("%key%", advancement.advancement));
+                        advancement.valid = false;
+                        mistakes.set(true);
+                    } else
+                        advancement.key = key;
+                } catch (IllegalArgumentException e) {
+                    logger.severe(getMessage("config.advancement.invalid_key").replace("%key%", advancement.advancement));
+                    advancement.valid = false;
+                    mistakes.set(true);
+                }
+            }
+        }
+
         config.effects.list.forEach(effect -> {
             if (PotionEffectType.getById(effect.id) == null) {
                 logger.severe(getMessage("config.potion_effect_not_found").replace("%id%", String.valueOf(effect.id)));
@@ -280,7 +309,17 @@ public class Config {
     public static class PlayerData {
 
         public boolean totemStatistic = true;
-        public boolean advancement = true;
+        public AdvancementData advancement = new AdvancementData();
+
+        public static class AdvancementData {
+
+            public boolean enabled = true;
+            public String advancement = "minecraft:adventure/totem_of_undying";
+            public List<String> criteria = Collections.emptyList();
+
+            public transient boolean valid = true;
+            public transient NamespacedKey key;
+        }
     }
 
     public static class RandomizationData {

@@ -90,14 +90,12 @@ public final class VoidTotem extends JavaPlugin {
             map.put(String.valueOf(Config.get().checkForUpdates), entry);
             return map;
         }));
-        metrics.addCustomChart(new DrilldownPie("player_data", () -> {
+        metrics.addCustomChart(new SimplePie("totem_statistic", () -> String.valueOf(Config.get().playerData.totemStatistic)));
+        metrics.addCustomChart(new DrilldownPie("advancement", () -> {
             Map<String, Map<String, Integer>> map = new HashMap<>();
-            Map<String, Integer> totemStatistic = new HashMap<>();
-            Map<String, Integer> advancement = new HashMap<>();
-            totemStatistic.put(String.valueOf(Config.get().playerData.totemStatistic), 1);
-            advancement.put(String.valueOf(Config.get().playerData.advancement), 1);
-            map.put("Totem Statistic", totemStatistic);
-            map.put("Advancement", advancement);
+            Map<String, Integer> entry = new HashMap<>();
+            entry.put(Config.get().playerData.advancement.advancement, 1);
+            map.put(String.valueOf(Config.get().playerData.advancement.enabled), entry);
             return map;
         }));
         metrics.addCustomChart(new DrilldownPie("effects", () -> {

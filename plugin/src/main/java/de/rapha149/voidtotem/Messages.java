@@ -23,6 +23,8 @@ public class Messages {
         messageConfig.addDefault("plugin.up_to_date", "Your version of this plugin is up to date!");
         messageConfig.addDefault("plugin.outdated", "There's a new version available for this plugin: %version%" +
                                                     "\nYou can download it from: %url%");
+        messageConfig.addDefault("config.advancement.invalid_key", "Invalid advancement key \"%key%\"");
+        messageConfig.addDefault("config.advancement.not_found", "There's no advancement with the key \"%key%\"");
         messageConfig.addDefault("config.potion_effect_not_found", "There's no potion effect with the id \"%id%\"");
         messageConfig.addDefault("config.recipe.result_item.not_found", "The result item \"%item%\" does not exist.");
         messageConfig.addDefault("config.recipe.result_item.invalid_count", "The count of the result item has to be between %limit_down% and %limit_up%.");
