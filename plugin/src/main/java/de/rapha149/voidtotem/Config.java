@@ -20,10 +20,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import org.yaml.snakeyaml.representer.Representer;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -122,9 +119,21 @@ public class Config {
         Yaml yaml = new Yaml(new CustomClassLoaderConstructor(VoidTotem.getInstance().getClass().getClassLoader()), representer, options);
 
         File file = new File(VoidTotem.getInstance().getDataFolder(), "config.yml");
-        if (file.exists())
-            config = yaml.loadAs(new FileReader(file), Config.class);
-        else {
+        if (file.exists()) {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String content = br.lines().collect(Collectors.joining("\n"));
+            br.close();
+
+            String line = content.split("\n")[0];
+            Matcher matcher = Pattern.compile("# VoidTotem version ((\\d|\\.)+)").matcher(line);
+            if(matcher.matches()) {
+                String version = matcher.group(1);
+                if(Updates.compare(version, "1.3.4") <= 0)
+                    content = content.replaceFirst("advancement: (true|false)", "advancement: {}");
+            }
+
+            config = yaml.loadAs(content, Config.class);
+        } else {
             file.getParentFile().mkdirs();
             config = new Config();
         }
@@ -181,16 +190,16 @@ public class Config {
         AtomicBoolean mistakes = new AtomicBoolean(false);
         Logger logger = VoidTotem.getInstance().getLogger();
         AdvancementData advancement = config.playerData.advancement;
-        if(advancement.enabled) {
+        if (advancement.enabled) {
             String[] keySplit = advancement.advancement.split(":");
-            if(keySplit.length != 2) {
+            if (keySplit.length != 2) {
                 logger.severe(getMessage("config.advancement.invalid_key").replace("%key%", advancement.advancement));
                 advancement.valid = false;
                 mistakes.set(true);
             } else {
                 try {
                     NamespacedKey key = new NamespacedKey(keySplit[0], keySplit[1]);
-                    if(Bukkit.getAdvancement(key) == null) {
+                    if (Bukkit.getAdvancement(key) == null) {
                         logger.severe(getMessage("config.advancement.not_found").replace("%key%", advancement.advancement));
                         advancement.valid = false;
                         mistakes.set(true);
