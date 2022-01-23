@@ -33,8 +33,15 @@ playerData:
   # If enabled, the used totem statistic will be increased for the player if saved from the void.
   totemStatistic: true
 
-  # If enabled, the player will receive the totem advancement upon resurrection if they did not have it before.
-  advancement: true
+  advancement:
+    # If enabled, the player will receive the totem advancement upon resurrection if they did not have it before.
+    enabled: true
+
+    # The advancement to grant the player. The advancement has to exist on the server.
+    advancement: minecraft:adventure/totem_of_undying
+
+    # The criteria to set completed. Set to "[]" to complete the whole advancement.
+    criteria: []
 
 randomization:
   # Whether to randomize search for suitable blocks.
