@@ -222,7 +222,7 @@ public class Config {
         });
 
         ItemData item = config.item;
-        ResultData result = config.item.result;
+        ResultData result = item.result;
         if (item.customRecipe) {
             if (Material.getMaterial(result.item.toUpperCase()) == null) {
                 logger.severe(getMessage("config.recipe.result_item.not_found").replace("%item%", result.item));
@@ -277,10 +277,10 @@ public class Config {
             });
         }
 
-        if (item.result.valid) {
+        if (result.valid) {
             if (!item.customRecipe) {
                 result.itemStack = wrapper.addIdentifier(new ItemStack(Material.TOTEM_OF_UNDYING));
-            } else if (result.valid) {
+            } else {
                 ItemStack itemStack = new ItemStack(Material.getMaterial(result.item.toUpperCase()), result.count);
                 ItemMeta meta = itemStack.getItemMeta();
                 if (result.name != null)
@@ -290,9 +290,9 @@ public class Config {
                 itemStack.setItemMeta(meta);
                 itemStack = wrapper.applyNBT(itemStack, result.nbt);
                 result.itemStack = wrapper.addIdentifier(itemStack);
-            } else
-                result.itemStack = null;
-        }
+            }
+        } else
+            result.itemStack = null;
 
         return !mistakes.get();
     }
