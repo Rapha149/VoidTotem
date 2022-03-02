@@ -5,7 +5,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.nbt.MojangsonParser;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.resources.MinecraftKey;
-import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingManager;
 import net.minecraft.world.item.crafting.IRecipe;
@@ -103,7 +102,7 @@ public class Wrapper1_18_R1 implements VersionWrapper {
     }
 
     @Override
-    public float getAbsorptionHearts(Player player) {
+    public double getAbsorptionHearts(Player player) {
         return ((CraftPlayer) player).getHandle().eI();
     }
 }

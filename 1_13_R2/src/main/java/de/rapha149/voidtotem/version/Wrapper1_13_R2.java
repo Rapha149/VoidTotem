@@ -87,7 +87,7 @@ public class Wrapper1_13_R2 implements VersionWrapper {
     }
 
     @Override
-    public float getAbsorptionHearts(Player player) {
+    public double getAbsorptionHearts(Player player) {
         return ((CraftPlayer) player).getHandle().getAbsorptionHearts();
     }
 }

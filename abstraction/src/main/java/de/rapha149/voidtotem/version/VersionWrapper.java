@@ -29,5 +29,5 @@ public interface VersionWrapper {
 
     boolean isPassable(Block block);
 
-    float getAbsorptionHearts(Player player);
+    double getAbsorptionHearts(Player player);
 }

@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
@@ -26,10 +27,17 @@ import java.util.stream.Collectors;
 public class Events implements Listener {
 
     @EventHandler
+    public void onDeath(PlayerDeathEvent event) {
+
+    }
+
+    @EventHandler
     public void onVoidDamage(EntityDamageEvent event) {
+        System.out.println(1);
         if (event.getCause() != DamageCause.VOID || !(event.getEntity() instanceof Player))
             return;
 
+        System.out.println(2);
         Player player = (Player) event.getEntity();
         Config config = Config.get();
         VoidTotem plugin = VoidTotem.getInstance();
@@ -38,21 +46,29 @@ public class Events implements Listener {
         double health = player.getHealth() + wrapper.getAbsorptionHearts(player) - event.getDamage();
         if (health > config.healthTrigger)
             return;
+
+        System.out.println(3);
         if (config.patchKillCommand && player.getLocation().getY() >= wrapper.getDownwardHeightLimit(player.getWorld()))
             return;
 
+        System.out.println(4);
         ItemStack usedItem = null;
         PlayerInventory inv = player.getInventory();
         if (config.item.customRecipe) {
+            System.out.println(5);
             if (!config.item.result.valid)
                 return;
 
+            System.out.println(6);
             if (config.item.hasToBeInHand) {
+                System.out.println(7);
                 boolean mainHand = wrapper.hasIdentifier(inv.getItemInMainHand());
                 if (!mainHand && !wrapper.hasIdentifier(inv.getItemInOffHand()))
                     return;
+                System.out.println(8);
                 usedItem = mainHand ? inv.getItemInMainHand() : inv.getItemInOffHand();
             } else {
+                System.out.println(9);
                 for (int i = 0; i < inv.getSize(); i++) {
                     ItemStack item = inv.getItem(i);
                     if (item != null && wrapper.hasIdentifier(item)) {
@@ -62,15 +78,20 @@ public class Events implements Listener {
                 }
                 if (usedItem == null)
                     return;
+                System.out.println(10);
             }
         } else {
+            System.out.println(11);
             Material mat = Material.TOTEM_OF_UNDYING;
             if (config.item.hasToBeInHand) {
+                System.out.println(12);
                 boolean mainHand = inv.getItemInMainHand().getType() == mat;
                 if (!mainHand && inv.getItemInOffHand().getType() != mat)
                     return;
                 usedItem = mainHand ? inv.getItemInMainHand() : inv.getItemInOffHand();
+                System.out.println(13);
             } else {
+                System.out.println(14);
                 for (int i = 0; i < inv.getSize(); i++) {
                     ItemStack item = inv.getItem(i);
                     if (item != null && item.getType() == mat) {
@@ -80,9 +101,11 @@ public class Events implements Listener {
                 }
                 if (usedItem == null)
                     return;
+                System.out.println(15);
             }
         }
 
+        System.out.println(16);
         Location loc = player.getLocation();
         World world = loc.getWorld();
         int x = loc.getBlockX(), z = loc.getBlockZ();
@@ -190,7 +213,7 @@ public class Events implements Listener {
                     AdvancementData advancementData = config.playerData.advancement;
                     if (advancementData.enabled && advancementData.valid) {
                         Advancement advancement = Bukkit.getAdvancement(advancementData.key);
-                        if(advancement != null) {
+                        if (advancement != null) {
                             AdvancementProgress progress = player.getAdvancementProgress(advancement);
                             if (!progress.isDone()) {
                                 List<String> criteria = advancementData.criteria;
