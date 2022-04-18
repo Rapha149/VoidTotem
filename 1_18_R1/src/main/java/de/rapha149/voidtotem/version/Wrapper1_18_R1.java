@@ -15,9 +15,8 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_18_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffectType;
 
 import java.lang.reflect.Field;
@@ -102,7 +101,7 @@ public class Wrapper1_18_R1 implements VersionWrapper {
     }
 
     @Override
-    public double getAbsorptionHearts(Player player) {
-        return ((CraftPlayer) player).getHandle().eI();
+    public double getAbsorptionHearts(LivingEntity entity) {
+        return entity.getAbsorptionAmount();
     }
 }

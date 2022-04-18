@@ -7,12 +7,14 @@ import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.EntityResurrectEvent;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
@@ -33,32 +35,37 @@ public class Events implements Listener {
 
     @EventHandler
     public void onVoidDamage(EntityDamageEvent event) {
-        if (event.getCause() != DamageCause.VOID || !(event.getEntity() instanceof Player))
-            return;
-
-        Player player = (Player) event.getEntity();
         Config config = Config.get();
-        VoidTotem plugin = VoidTotem.getInstance();
-        VersionWrapper wrapper = plugin.wrapper;
+        boolean isPlayer = event.getEntity() instanceof Player;
+        if (event.getCause() != DamageCause.VOID || !(event.getEntity() instanceof LivingEntity) ||
+            (config.onlySavePlayers && !isPlayer)) {
+            return;
+        }
 
-        double health = player.getHealth() + wrapper.getAbsorptionHearts(player) - event.getDamage();
+        LivingEntity entity = (LivingEntity) event.getEntity();
+        Player player = isPlayer ? (Player) entity : null;
+        VersionWrapper wrapper = VoidTotem.getInstance().wrapper;
+
+        double health = entity.getHealth() + wrapper.getAbsorptionHearts(entity) - event.getDamage();
         if (health > config.healthTrigger)
             return;
 
-        if (config.patchKillCommand && player.getLocation().getY() >= wrapper.getDownwardHeightLimit(player.getWorld()))
+        if (config.patchKillCommand && entity.getLocation().getY() >= wrapper.getDownwardHeightLimit(entity.getWorld()))
             return;
 
         ItemStack usedItem = null;
-        PlayerInventory inv = player.getInventory();
+        Boolean mainHand = null;
+        EntityEquipment equipment = entity.getEquipment();
+        PlayerInventory inv = isPlayer ? player.getInventory() : null;
         if (config.item.customRecipe) {
             if (!config.item.result.valid)
                 return;
 
-            if (config.item.hasToBeInHand) {
-                boolean mainHand = wrapper.hasIdentifier(inv.getItemInMainHand());
-                if (!mainHand && !wrapper.hasIdentifier(inv.getItemInOffHand()))
+            if (config.item.hasToBeInHand || !isPlayer) {
+                mainHand = wrapper.hasIdentifier(equipment.getItemInMainHand());
+                if (!mainHand && !wrapper.hasIdentifier(equipment.getItemInOffHand()))
                     return;
-                usedItem = mainHand ? inv.getItemInMainHand() : inv.getItemInOffHand();
+                usedItem = mainHand ? equipment.getItemInMainHand() : equipment.getItemInOffHand();
             } else {
                 for (int i = 0; i < inv.getSize(); i++) {
                     ItemStack item = inv.getItem(i);
@@ -72,11 +79,11 @@ public class Events implements Listener {
             }
         } else {
             Material mat = Material.TOTEM_OF_UNDYING;
-            if (config.item.hasToBeInHand) {
-                boolean mainHand = inv.getItemInMainHand().getType() == mat;
-                if (!mainHand && inv.getItemInOffHand().getType() != mat)
+            if (config.item.hasToBeInHand || !isPlayer) {
+                mainHand = equipment.getItemInMainHand().getType() == mat;
+                if (!mainHand && equipment.getItemInOffHand().getType() != mat)
                     return;
-                usedItem = mainHand ? inv.getItemInMainHand() : inv.getItemInOffHand();
+                usedItem = mainHand ? equipment.getItemInMainHand() : equipment.getItemInOffHand();
             } else {
                 for (int i = 0; i < inv.getSize(); i++) {
                     ItemStack item = inv.getItem(i);
@@ -90,7 +97,7 @@ public class Events implements Listener {
             }
         }
 
-        Location loc = player.getLocation();
+        Location loc = entity.getLocation();
         World world = loc.getWorld();
         int x = loc.getBlockX(), z = loc.getBlockZ();
 
@@ -144,40 +151,65 @@ public class Events implements Listener {
                 if (block.getRelative(BlockFace.DOWN).getType().isSolid() && wrapper.isPassable(block) &&
                     wrapper.isPassable(block.getRelative(BlockFace.UP))) {
                     Location newLoc = block.getLocation().add(0.5, 0, 0.5);
-                    newLoc.setYaw(player.getLocation().getYaw());
-                    newLoc.setPitch(player.getLocation().getPitch());
+                    newLoc.setYaw(entity.getLocation().getYaw());
+                    newLoc.setPitch(entity.getLocation().getPitch());
 
                     event.setCancelled(true);
-                    if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE)
+                    if (!isPlayer || player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE) {
                         usedItem.setAmount(usedItem.getAmount() - 1);
-                    player.updateInventory();
+                        if (isPlayer)
+                            player.updateInventory();
+                        else if (mainHand)
+                            equipment.setItemInMainHand(usedItem);
+                        else
+                            equipment.setItemInOffHand(usedItem);
+                    }
 
                     boolean removeExisting = config.effects.removeExistingEffects;
                     List<Integer> effectIds = removeExisting ? null : config.effects.list.stream().map(effectData -> effectData.id).collect(Collectors.toList());
-                    player.getActivePotionEffects().forEach(effect -> {
+                    entity.getActivePotionEffects().forEach(effect -> {
                         if (removeExisting || effectIds.contains(effect.getType().getId()))
-                            player.removePotionEffect(effect.getType());
+                            entity.removePotionEffect(effect.getType());
                     });
 
-                    player.setGliding(false);
-                    player.setFallDistance(0);
-                    player.teleport(newLoc);
-                    player.setHealth(Math.min(Math.max(health, 0) + 0.5, 20));
+                    entity.setGliding(false);
+                    entity.setFallDistance(0);
+                    entity.teleport(newLoc);
+                    entity.setHealth(Math.min(Math.max(health, 0) + 0.5, 20));
 
-                    player.addPotionEffects(config.effects.list.stream().map(effectData -> {
+                    entity.addPotionEffects(config.effects.list.stream().map(effectData -> {
                         PotionEffectType type = PotionEffectType.getById(effectData.id);
                         return type != null ? new PotionEffect(type, effectData.duration * 20, effectData.amplifier) : null;
                     }).filter(Objects::nonNull).collect(Collectors.toList()));
 
-                    if (config.effects.restoreFoodLevel) {
-                        player.setFoodLevel(20);
-                        player.setSaturation(20F);
-                        player.setExhaustion(0F);
+                    if (isPlayer) {
+                        if (config.effects.restoreFoodLevel) {
+                            player.setFoodLevel(20);
+                            player.setSaturation(20F);
+                            player.setExhaustion(0F);
+                        }
+
+                        if (config.playerData.totemStatistic)
+                            player.incrementStatistic(Statistic.USE_ITEM, Material.TOTEM_OF_UNDYING);
+
+                        AdvancementData advancementData = config.playerData.advancement;
+                        if (advancementData.enabled && advancementData.valid) {
+                            Advancement advancement = Bukkit.getAdvancement(advancementData.key);
+                            if (advancement != null) {
+                                AdvancementProgress progress = player.getAdvancementProgress(advancement);
+                                if (!progress.isDone()) {
+                                    List<String> criteria = advancementData.criteria;
+                                    progress.getRemainingCriteria().stream()
+                                            .filter(criterion -> criteria.isEmpty() || criteria.contains(criterion))
+                                            .forEach(progress::awardCriteria);
+                                }
+                            }
+                        }
                     }
 
                     Runnable totemEffects = () -> {
                         if (config.animation.totemEffects)
-                            player.playEffect(EntityEffect.TOTEM_RESURRECT);
+                            entity.playEffect(EntityEffect.TOTEM_RESURRECT);
                     };
 
                     Bukkit.getScheduler().runTask(VoidTotem.getInstance(), () -> {
@@ -186,27 +218,10 @@ public class Events implements Listener {
 
                         if (config.animation.teleportSound) {
                             world.playSound(newLoc, Sound.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.PLAYERS, 1F, 1F);
-                            Bukkit.getScheduler().runTaskLater(plugin, totemEffects, 6);
+                            Bukkit.getScheduler().runTaskLater(VoidTotem.getInstance(), totemEffects, 6);
                         } else
                             totemEffects.run();
                     });
-
-                    if (config.playerData.totemStatistic)
-                        player.incrementStatistic(Statistic.USE_ITEM, Material.TOTEM_OF_UNDYING);
-
-                    AdvancementData advancementData = config.playerData.advancement;
-                    if (advancementData.enabled && advancementData.valid) {
-                        Advancement advancement = Bukkit.getAdvancement(advancementData.key);
-                        if (advancement != null) {
-                            AdvancementProgress progress = player.getAdvancementProgress(advancement);
-                            if (!progress.isDone()) {
-                                List<String> criteria = advancementData.criteria;
-                                progress.getRemainingCriteria().stream()
-                                        .filter(criterion -> criteria.isEmpty() || criteria.contains(criterion))
-                                        .forEach(progress::awardCriteria);
-                            }
-                        }
-                    }
 
                     found = true;
                     break;

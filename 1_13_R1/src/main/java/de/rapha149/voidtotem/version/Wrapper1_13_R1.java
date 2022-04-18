@@ -11,8 +11,11 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_13_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_13_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_13_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_13_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_13_R1.inventory.CraftItemStack;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
@@ -83,7 +86,7 @@ public class Wrapper1_13_R1 implements VersionWrapper {
     }
 
     @Override
-    public double getAbsorptionHearts(Player player) {
-        return ((CraftPlayer) player).getHandle().getAbsorptionHearts();
+    public double getAbsorptionHearts(LivingEntity entity) {
+        return ((CraftLivingEntity) entity).getHandle().getAbsorptionHearts();
     }
 }
