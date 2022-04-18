@@ -77,6 +77,10 @@ public class Config {
                                           "\nIf you made a mistake with the custom item you will be notified in the console and the item won't work." +
                                           "\nPlease note: if you've changed something for the recipe and reloaded the config you may have to rejoin for the changes to take effect." +
                                           "\nPlease also note: if you change the resulting item, earlier crafted totems will still work.");
+        comments.put("item.noNormalResurrection", "If enabled, and \"customRecipe\" is enabled, you won't be able to use the custom totems for normal totem resurrections." +
+                                                  "\nThis also applies for totems that were given to players using the command" +
+                                                  "\n included in the plugin - even if the command was executed before \"customRecipe\" was enabled." +
+                                                  "\nPlease note: even if \"onlySavePlayers\" is enabled, the custom totem still won't work for mobs.");
         comments.put("item.result", "The item to use as a totem item and the result of the recipe.");
         comments.put("item.result.name", "The display name of the item." +
                                          "\nYou can use \"&\" and a color code to colorize the chat or use the adventure text syntax. A few examples:" +
@@ -379,6 +383,7 @@ public class Config {
 
         public boolean hasToBeInHand = true;
         public boolean customRecipe = false;
+        public boolean noNormalResurrection = false;
         public ResultData result = new ResultData();
         public RecipeData recipe = new RecipeData();
 

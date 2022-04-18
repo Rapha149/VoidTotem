@@ -28,9 +28,35 @@ import java.util.stream.Collectors;
 
 public class Events implements Listener {
 
-    @EventHandler
-    public void onDeath(PlayerDeathEvent event) {
+    @EventHandler(ignoreCancelled = true)
+    public void onResurrect(EntityResurrectEvent event) {
+        Config config = Config.get();
+        if (!config.item.customRecipe || !config.item.noNormalResurrection)
+            return;
 
+        VersionWrapper wrapper = VoidTotem.getInstance().wrapper;
+        LivingEntity entity = event.getEntity();
+        EntityEquipment equipment = entity.getEquipment();
+        ItemStack mainHandItem = equipment.getItemInMainHand(),
+                offHandItem = equipment.getItemInOffHand();
+        boolean mainHandNormal = mainHandItem.getType() == Material.TOTEM_OF_UNDYING,
+                offHandNormal = offHandItem.getType() == Material.TOTEM_OF_UNDYING,
+                mainHandCustom = wrapper.hasIdentifier(mainHandItem),
+                offHandCustom = wrapper.hasIdentifier(offHandItem);
+
+        if (!mainHandCustom && !offHandCustom)
+            return;
+
+        if ((mainHandCustom && !offHandNormal) || (offHandCustom && !mainHandNormal)) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (mainHandCustom && offHandNormal) {
+            equipment.setItemInOffHand(null);
+            ItemStack item = mainHandItem.clone();
+            Bukkit.getScheduler().runTask(VoidTotem.getInstance(), () -> equipment.setItemInMainHand(item));
+        }
     }
 
     @EventHandler
