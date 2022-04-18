@@ -13,6 +13,10 @@ If you are resurrected by the totem you will be teleported onto a nearby block w
 
 The default `config.yml` looks like this:
 ```yml
+# VoidTotem version 1.4
+# Github: https://github.com/Rapha149/VoidTotem
+# Spigot: https://www.spigotmc.org/resources/void-totem.99003/
+
 # Whether to check for updates on enabling.
 checkForUpdates: true
 
@@ -28,6 +32,10 @@ searchDistance: 100
 # This is due to the fact that the damage cause in the Spigot API is the same for the void and /kill.
 # If enabled the totem will only resurrect people if they are below the downward height limit.
 patchKillCommand: true
+
+# If disabled, mobs who can hold the totem will be saved from the void, too.
+# That is the same behavior as for normal totem resurrections.
+onlySavePlayers: false
 
 playerData:
   # If enabled, the used totem statistic will be increased for the player if saved from the void.
@@ -101,6 +109,12 @@ item:
   # Please note: if you've changed something for the recipe and reloaded the config you may have to rejoin for the changes to take effect.
   # Please also note: if you change the resulting item, earlier crafted totems will still work.
   customRecipe: false
+
+  # If enabled, and "customRecipe" is enabled, you won't be able to use the custom totems for normal totem resurrections.
+  # This also applies for totems that were given to players using the command
+  #  included in the plugin - even if the command was executed before "customRecipe" was enabled.
+  # Please note: even if "onlySavePlayers" is enabled, the custom totem still won't work for mobs.
+  noNormalResurrection: false
 
   # The item to use as a totem item and the result of the recipe.
   result:
