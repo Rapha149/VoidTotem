@@ -171,7 +171,7 @@ item:
     - chorus_fruit | diamond | chorus_fruit
 ```
 
-If you need any help regarding the config, don't hesitate to ask, I tried to explaining it as clearly as possible.
+If you need any help regarding the config, don't hesitate to ask, I tried to explain it as clearly as possible.
 
 ### Messages
 
