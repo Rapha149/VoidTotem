@@ -7,7 +7,7 @@
     <parent>
         <artifactId>VoidTotem-parent</artifactId>
         <groupId>de.rapha149.voidtotem</groupId>
-        <version>1.4</version>
+        <version>1.5</version>
     </parent>
 
     <artifactId>VoidTotem</artifactId>
@@ -102,6 +102,12 @@
         <dependency>
             <groupId>de.rapha149.voidtotem</groupId>
             <artifactId>VoidTotem-1_18_R2</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.rapha149.voidtotem</groupId>
+            <artifactId>VoidTotem-1_19_R1</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>
