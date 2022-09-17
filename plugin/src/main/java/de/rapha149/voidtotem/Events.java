@@ -7,26 +7,33 @@ import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityResurrectEvent;
+import org.bukkit.event.entity.EntityTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public class Events implements Listener {
+
+    private Map<Long, Entry<Entity, Location>> teleports = new HashMap<>();
 
     @EventHandler(ignoreCancelled = true)
     public void onResurrect(EntityResurrectEvent event) {
@@ -200,9 +207,15 @@ public class Events implements Listener {
 
                     entity.setGliding(false);
                     entity.setFallDistance(0);
-                    entity.teleport(newLoc);
-                    entity.setHealth(Math.min(Math.max(health, 0) + 0.5, 20));
 
+                    if (config.forceTeleport) {
+                        long time = System.currentTimeMillis();
+                        teleports.put(time, new SimpleEntry<>(entity, newLoc));
+                        Bukkit.getScheduler().runTaskLater(VoidTotem.getInstance(), () -> teleports.remove(time), 5);
+                    }
+                    entity.teleport(newLoc);
+
+                    entity.setHealth(Math.min(Math.max(health, 0) + 0.5, 20));
                     entity.addPotionEffects(config.effects.list.stream().map(effectData -> {
                         PotionEffectType type = PotionEffectType.getById(effectData.id);
                         return type != null ? new PotionEffect(type, effectData.duration * 20, effectData.amplifier) : null;
@@ -257,5 +270,29 @@ public class Events implements Listener {
             if (found)
                 break;
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onTeleport(EntityTeleportEvent event) {
+        onTeleport(event, event.getEntity(), event.getTo());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onTeleport(PlayerTeleportEvent event) {
+        if (event.getCause() != TeleportCause.PLUGIN)
+            return;
+        onTeleport(event, event.getPlayer(), event.getTo());
+    }
+
+    private void onTeleport(Cancellable event, Entity entity, Location loc) {
+        if (!Config.get().forceTeleport)
+            return;
+        teleports.values().removeIf(entry -> {
+            if (entry.getKey().equals(entity) && entry.getValue().equals(loc)) {
+                event.setCancelled(false);
+                return true;
+            }
+            return false;
+        });
     }
 }

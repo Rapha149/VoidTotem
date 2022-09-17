@@ -49,6 +49,8 @@ public class Config {
                                          "\nIf enabled the totem will only resurrect people if they are below the downward height limit.");
         comments.put("onlySavePlayers", "If disabled, mobs who can hold the totem will be saved from the void, too." +
                                         "\nThat is the same behavior as for normal totem resurrections.");
+        comments.put("forceTeleport", "If enabled the plugin makes sure that the player gets teleported even if that is cancelled by other plugins." +
+                                        "\nThis might not work 100% of the time.");
         comments.put("playerData.totemStatistic", "If enabled, the used totem statistic will be increased for the player if saved from the void.");
         comments.put("playerData.advancement.enabled", "If enabled, the player will receive the totem advancement upon resurrection if they did not have it before.");
         comments.put("playerData.advancement.advancement", "The advancement to grant the player. The advancement has to exist on the server.");
@@ -316,6 +318,7 @@ public class Config {
     public int searchDistance = 100;
     public boolean patchKillCommand = true;
     public boolean onlySavePlayers = false;
+    public boolean forceTeleport = false;
     public PlayerData playerData = new PlayerData();
     public RandomizationData randomization = new RandomizationData();
     public EffectsData effects = new EffectsData();
