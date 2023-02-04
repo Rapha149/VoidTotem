@@ -134,10 +134,36 @@ public class Config {
 
             String line = content.split("\n")[0];
             Matcher matcher = Pattern.compile("# VoidTotem version ((\\d|\\.)+)").matcher(line);
-            if(matcher.matches()) {
+            if (matcher.matches()) {
                 String version = matcher.group(1);
-                if(Updates.compare(version, "1.3.4") <= 0)
+                if (Updates.compare(version, "1.3.4") <= 0)
                     content = content.replaceFirst("advancement: (true|false)", "advancement: {}");
+                if (Updates.compare(version, "1.6.1") <= 0) {
+                    content = content.replaceFirst("searchDistance: (\\d+)", "search: { distance: $1 }");
+
+                    String[] lines = content.split("\n");
+                    int state = 0;
+                    Pattern potionPattern = Pattern.compile("\\s*- id: (\\d+).+");
+                    for (int i = 0; i < lines.length; i++) {
+                        line = lines[i];
+                        if (state > 0 && !line.startsWith("  "))
+                            break;
+
+                        if (state == 0 && line.trim().equals("effects:"))
+                            state++;
+                        else if (state == 1 && line.trim().equals("list:"))
+                            state++;
+                        else if (state == 2) {
+                            Matcher potionMatcher = potionPattern.matcher(line);
+                            PotionEffectType type = PotionEffectType.getById(Integer.parseInt(potionMatcher.group(1)));
+                            if (type == null)
+                                type = PotionEffectType.REGENERATION;
+                            lines[i] = line.replaceFirst("id: (\\d+)", "type: " + type.getName());
+                        }
+                    }
+
+                    content = String.join("\n", lines);
+                }
             }
 
             config = yaml.loadAs(content, Config.class);
@@ -149,7 +175,6 @@ public class Config {
         VersionWrapper wrapper = VoidTotem.getInstance().wrapper;
         try (FileWriter writer = new FileWriter(file)) {
             Pattern pattern = Pattern.compile("((\\s|-)*)(\\w+):( .+)?");
-            Pattern potionPattern = Pattern.compile("  - id: (\\d+)");
             Map<Integer, String> parents = new HashMap<>();
             int lastIndent = 0;
             String[] lines = yaml.dumpAsMap(config).split("\n");
@@ -178,15 +203,6 @@ public class Config {
                     } else if (matcher.group(4) == null)
                         sb.append("\n");
                     lastIndent = indent;
-                }
-
-                Matcher potionMatcher = potionPattern.matcher(line);
-                if (potionMatcher.matches()) {
-                    PotionEffectType type = PotionEffectType.getById(Integer.parseInt(potionMatcher.group(1)));
-                    if (type != null) {
-                        sb.append(line + "  # " + wrapper.getPotionEffectName(type) + "\n");
-                        continue;
-                    }
                 }
 
                 sb.append(line + "\n");
@@ -222,8 +238,8 @@ public class Config {
         }
 
         config.effects.list.forEach(effect -> {
-            if (PotionEffectType.getById(effect.id) == null) {
-                logger.severe(getMessage("config.potion_effect_not_found").replace("%id%", String.valueOf(effect.id)));
+            if (PotionEffectType.getByName(effect.name) == null) {
+                logger.severe(getMessage("config.potion_effect_not_found").replace("%id%", String.valueOf(effect.name)));
                 effect.valid = false;
                 mistakes.set(true);
             }
@@ -253,20 +269,20 @@ public class Config {
 
             RecipeData recipe = item.recipe;
             if (!recipe.shaped) {
-                if (recipe.shapelessIngredients.size() <= 0 || recipe.shapelessIngredients.size() > 9) {
+                if (recipe.shapelessIngredients.size() == 0 || recipe.shapelessIngredients.size() > 9) {
                     logger.severe(getMessage("config.recipe.shapeless_ingredients_invalid_count"));
                     recipe.valid = false;
                     mistakes.set(true);
                 }
             } else {
-                if (recipe.shapedIngredients.size() <= 0 || recipe.shapedIngredients.size() > 3) {
+                if (recipe.shapedIngredients.size() == 0 || recipe.shapedIngredients.size() > 3) {
                     logger.severe(getMessage("config.recipe.shaped.ingredient_rows_invalid_count"));
                     recipe.valid = false;
                     mistakes.set(true);
                 }
                 for (int i = 0; i < recipe.shapedIngredients.size(); i++) {
                     int length = recipe.shapedIngredients.get(i).split("\\|").length;
-                    if (length <= 0 || length > 3) {
+                    if (length == 0 || length > 3) {
                         logger.severe(getMessage("config.recipe.shaped.ingredients_invalid_count")
                                 .replace("%row%", String.valueOf(i + 1)));
                         recipe.valid = false;
@@ -352,13 +368,13 @@ public class Config {
 
         public boolean restoreFoodLevel = false;
         public boolean removeExistingEffects = true;
-        public List<EffectData> list = Arrays.asList(new EffectData(PotionEffectType.REGENERATION.getId(), 45, 1),
-                new EffectData(PotionEffectType.FIRE_RESISTANCE.getId(), 40, 0),
-                new EffectData(PotionEffectType.ABSORPTION.getId(), 5, 1));
+        public List<EffectData> list = Arrays.asList(new EffectData(PotionEffectType.REGENERATION.getName(), 45, 1),
+                new EffectData(PotionEffectType.FIRE_RESISTANCE.getName(), 40, 0),
+                new EffectData(PotionEffectType.ABSORPTION.getName(), 5, 1));
 
         public static class EffectData {
 
-            public int id = 1;
+            public String name = PotionEffectType.REGENERATION.getName();
             public int duration = 30;
             public int amplifier = 0;
 
@@ -367,8 +383,8 @@ public class Config {
             public EffectData() {
             }
 
-            EffectData(int id, int duration, int amplifier) {
-                this.id = id;
+            EffectData(String name, int duration, int amplifier) {
+                this.name = name;
                 this.duration = duration;
                 this.amplifier = amplifier;
             }

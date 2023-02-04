@@ -111,7 +111,7 @@ public final class VoidTotem extends JavaPlugin {
         metrics.addCustomChart(new AdvancedPie("potion_effects", () -> {
             Map<String, Integer> map = new HashMap<>();
             Config.get().effects.list.forEach(effect -> {
-                PotionEffectType type = PotionEffectType.getById(effect.id);
+                PotionEffectType type = PotionEffectType.getByName(effect.name);
                 if (type != null)
                     map.put(type.getName().toLowerCase(), 1);
             });

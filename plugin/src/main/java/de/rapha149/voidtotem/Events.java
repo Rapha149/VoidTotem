@@ -199,9 +199,9 @@ public class Events implements Listener {
                     }
 
                     boolean removeExisting = config.effects.removeExistingEffects;
-                    List<Integer> effectIds = removeExisting ? null : config.effects.list.stream().map(effectData -> effectData.id).collect(Collectors.toList());
+                    List<String> effectNames = removeExisting ? null : config.effects.list.stream().map(effectData -> effectData.name).collect(Collectors.toList());
                     entity.getActivePotionEffects().forEach(effect -> {
-                        if (removeExisting || effectIds.contains(effect.getType().getId()))
+                        if (removeExisting || effectNames.contains(effect.getType().getName()))
                             entity.removePotionEffect(effect.getType());
                     });
 
@@ -217,7 +217,7 @@ public class Events implements Listener {
 
                     entity.setHealth(Math.min(Math.max(health, 0) + 0.5, 20));
                     entity.addPotionEffects(config.effects.list.stream().map(effectData -> {
-                        PotionEffectType type = PotionEffectType.getById(effectData.id);
+                        PotionEffectType type = PotionEffectType.getByName(effectData.name);
                         return type != null ? new PotionEffect(type, effectData.duration * 20, effectData.amplifier) : null;
                     }).filter(Objects::nonNull).collect(Collectors.toList()));
 
