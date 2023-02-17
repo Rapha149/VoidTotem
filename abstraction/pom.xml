@@ -7,7 +7,7 @@
     <parent>
         <artifactId>VoidTotem-parent</artifactId>
         <groupId>de.rapha149.voidtotem</groupId>
-        <version>1.6.1</version>
+        <version>1.7</version>
     </parent>
 
     <artifactId>VoidTotem-abstraction</artifactId>
