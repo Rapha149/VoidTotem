@@ -13,7 +13,7 @@ If you are resurrected by the totem you will be teleported onto a nearby block w
 
 The default `config.yml` looks like this:
 ```yml
-# VoidTotem version 1.5Add 1.19 support.
+# VoidTotem version 1.7
 # Github: https://github.com/Rapha149/VoidTotem
 # Spigot: https://www.spigotmc.org/resources/void-totem.99003/
 
@@ -25,8 +25,50 @@ checkForUpdates: true
 # if it's 10 the player will be resurrected when he would have 5 hearts left and if it's 20 the player will be resurrected on first void damage.
 healthTrigger: 0.0
 
-# Specifies the distance to search for suitable blocks. It's measured in blocks in every direction from the player.
-searchDistance: 100
+search:
+  # Specifies the distance to search for suitable blocks. It's measured in blocks in every direction from the player.
+  distance: 100
+
+  # Customize the platform that will be created when the player is saved from the void but the plugin can't find a suitable block in the range of the search distance.
+  # This does not work for mobs, even if "onlySavePlayers" is "false".
+  platform:
+    # Whether or not the platform should be created. If disabled and the plugin can't find any suitable blocks, the player won't be saved.
+    enabled: true
+
+    # The size of the platform. It's measured in blocks in every direction from the center of the platform.
+    # For example: "0" will create a single block platform, "1" will create a 3x3 platform and "2" will create a 5x5 platform.
+    size: 2
+
+    # The y coordinate the platform will be created at.
+    height: 70
+
+    # The block the platform will be created from.
+    block: minecraft:cobblestone
+
+    # Whether or not the platform should be breakable by the player.
+    # This should not be enabled when disappearing is disabled.
+    # Please note: a platform that was unbreakable will be breakable after a restart/reload of the server.
+    breakable: false
+
+    # Customize the options for disappearing.
+    disappear:
+      # Whether or not the platform should disappear.
+      # Please note: if the server restarts/reloads while the platform is still there, it won't disappear after the restart/reload.
+      enabled: true
+
+      # Whether or not the platform should only disappear after the player has left the platform.
+      waitForPlayer: true
+
+      # The time in seconds before the platform disappears.
+      # If "waitForPlayer" is "true", the countdown will be started once the player leaves the platform.
+      # If "waitForPlayer" is "false", the countdown will start directly after the creation of the platform.
+      delay: 10
+
+      # Whether or not to create a hologram above the platform that shows the remaining time before the platform disappears.
+      hologram: true
+
+      # Whether or not to play the block breaking sound.
+      sound: true
 
 # If disabled, the totem will save players from the /kill command.
 # This is due to the fact that the damage cause in the Spigot API is the same for the void and /kill.
@@ -35,6 +77,7 @@ patchKillCommand: true
 
 # If disabled, mobs who can hold the totem will be saved from the void, too.
 # That is the same behavior as for normal totem resurrections.
+# Please note: the platform (see above) will not be created for mobs.
 onlySavePlayers: false
 
 # If enabled the plugin makes sure that the player gets teleported even if that is cancelled by other plugins.
@@ -79,16 +122,14 @@ effects:
   removeExistingEffects: true
 
   # Potion effects to apply after resurrection.
-  # A list of ids can be found here: https://minecraft.fandom.com/wiki/Effect#Effect_list
-  #  (Please only look at values that are present in the Java Edition)
   list:
-  - id: 10  # regeneration
+  - name: REGENERATION
     duration: 45
     amplifier: 1
-  - id: 12  # fire_resistance
+  - name: FIRE_RESISTANCE
     duration: 40
     amplifier: 0
-  - id: 22  # absorption
+  - name: ABSORPTION
     duration: 5
     amplifier: 1
 
