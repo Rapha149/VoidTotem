@@ -5,18 +5,12 @@ import net.minecraft.server.v1_13_R1.ItemStack;
 import net.minecraft.server.v1_13_R1.MinecraftKey;
 import net.minecraft.server.v1_13_R1.MojangsonParser;
 import net.minecraft.server.v1_13_R1.NBTTagCompound;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_13_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_13_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_13_R1.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.v1_13_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_13_R1.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
 public class Wrapper1_13_R1 implements VersionWrapper {
@@ -52,10 +46,10 @@ public class Wrapper1_13_R1 implements VersionWrapper {
     @Override
     public boolean hasIdentifier(org.bukkit.inventory.ItemStack item) {
         ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        if(!nmsItem.hasTag())
+        if (!nmsItem.hasTag())
             return false;
         NBTTagCompound nbt = nmsItem.getTag();
-        if(!nbt.hasKey(IDENTIFIER))
+        if (!nbt.hasKey(IDENTIFIER))
             return false;
         return nbt.getBoolean(IDENTIFIER);
     }
@@ -83,6 +77,11 @@ public class Wrapper1_13_R1 implements VersionWrapper {
     @Override
     public boolean isPassable(Block block) {
         return block.getType() == Material.AIR;
+    }
+
+    @Override
+    public void playBreakSound(Block block) {
+        block.getWorld().playSound(block.getLocation().add(0.5, 0.5, 0.5), Sound.BLOCK_STONE_BREAK, 1, 1);
     }
 
     @Override

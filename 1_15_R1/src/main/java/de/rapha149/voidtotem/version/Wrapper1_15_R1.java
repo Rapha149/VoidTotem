@@ -4,6 +4,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.v1_15_R1.*;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -79,6 +80,11 @@ public class Wrapper1_15_R1 implements VersionWrapper {
     @Override
     public boolean isPassable(Block block) {
         return block.isPassable();
+    }
+
+    @Override
+    public void playBreakSound(Block block) {
+        block.getWorld().playSound(block.getLocation().add(0.5, 0.5, 0.5), Sound.BLOCK_STONE_BREAK, 1, 1);
     }
 
     @Override

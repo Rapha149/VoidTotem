@@ -29,5 +29,7 @@ public interface VersionWrapper {
 
     boolean isPassable(Block block);
 
+    void playBreakSound(Block block);
+
     double getAbsorptionHearts(LivingEntity entity);
 }

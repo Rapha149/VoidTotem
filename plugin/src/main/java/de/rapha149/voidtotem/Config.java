@@ -3,6 +3,7 @@ package de.rapha149.voidtotem;
 import de.rapha149.voidtotem.Config.ItemData.RecipeData;
 import de.rapha149.voidtotem.Config.ItemData.ResultData;
 import de.rapha149.voidtotem.Config.PlayerData.AdvancementData;
+import de.rapha149.voidtotem.Config.SearchData.PlatformData;
 import de.rapha149.voidtotem.version.VersionWrapper;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -43,14 +44,34 @@ public class Config {
         comments.put("healthTrigger", "If the health of the player is be below or equal to this, the totem will try to resurrect the player." +
                                       "\nIt's expressed in half hearts, that means if it's 0 the player will be resurrected when he would have 0 hearts left," +
                                       "\nif it's 10 the player will be resurrected when he would have 5 hearts left and if it's 20 the player will be resurrected on first void damage.");
-        comments.put("searchDistance", "Specifies the distance to search for suitable blocks. It's measured in blocks in every direction from the player.");
+        comments.put("search.distance", "Specifies the distance to search for suitable blocks. It's measured in blocks in every direction from the player.");
+        comments.put("search.platform", "Customize the platform that will be created when the player is saved from the void but the plugin can't find a suitable block in the range of the search distance." +
+                                        "\nThis does not work for mobs, even if \"onlySavePlayers\" is \"false\".");
+        comments.put("search.platform.enabled", "Whether or not the platform should be created. If disabled and the plugin can't find any suitable blocks, the player won't be saved.");
+        comments.put("search.platform.size", "The size of the platform. It's measured in blocks in every direction from the center of the platform." +
+                                             "\nFor example: \"0\" will create a single block platform, \"1\" will create a 3x3 platform and \"2\" will create a 5x5 platform.");
+        comments.put("search.platform.height", "The y coordinate the platform will be created at.");
+        comments.put("search.platform.block", "The block the platform will be created from.");
+        comments.put("search.platform.breakable", "Whether or not the platform should be breakable by the player." +
+                                                  "\nThis should not be enabled when disappearing is disabled." +
+                                                  "\nPlease note: a platform that was unbreakable will be breakable after a restart/reload of the server.");
+        comments.put("search.platform.disappear", "Customize the options for disappearing.");
+        comments.put("search.platform.disappear.enabled", "Whether or not the platform should disappear." +
+                                                          "\nPlease note: if the server restarts/reloads while the platform is still there, it won't disappear after the restart/reload.");
+        comments.put("search.platform.disappear.waitForPlayer", "Whether or not the platform should only disappear after the player has left the platform.");
+        comments.put("search.platform.disappear.delay", "The time in seconds before the platform disappears." +
+                                                        "\nIf \"waitForPlayer\" is \"true\", the countdown will be started once the player leaves the platform." +
+                                                        "\nIf \"waitForPlayer\" is \"false\", the countdown will start directly after the creation of the platform.");
+        comments.put("search.platform.disappear.hologram", "Whether or not to create a hologram above the platform that shows the remaining time before the platform disappears.");
+        comments.put("search.platform.disappear.sound", "Whether or not to play the block breaking sound.");
         comments.put("patchKillCommand", "If disabled, the totem will save players from the /kill command." +
                                          "\nThis is due to the fact that the damage cause in the Spigot API is the same for the void and /kill." +
                                          "\nIf enabled the totem will only resurrect people if they are below the downward height limit.");
         comments.put("onlySavePlayers", "If disabled, mobs who can hold the totem will be saved from the void, too." +
-                                        "\nThat is the same behavior as for normal totem resurrections.");
+                                        "\nThat is the same behavior as for normal totem resurrections." +
+                                        "\nPlease note: the platform (see above) will not be created for mobs.");
         comments.put("forceTeleport", "If enabled the plugin makes sure that the player gets teleported even if that is cancelled by other plugins." +
-                                        "\nThis might not work 100% of the time.");
+                                      "\nThis might not work 100% of the time.");
         comments.put("playerData.totemStatistic", "If enabled, the used totem statistic will be increased for the player if saved from the void.");
         comments.put("playerData.advancement.enabled", "If enabled, the player will receive the totem advancement upon resurrection if they did not have it before.");
         comments.put("playerData.advancement.advancement", "The advancement to grant the player. The advancement has to exist on the server.");
@@ -66,9 +87,7 @@ public class Config {
         comments.put("effects.restoreFoodLevel", "Whether to restore the food level and saturation after resurrection.");
         comments.put("effects.removeExistingEffects", "Whether to remove existing potion effects after resurrection." +
                                                       "\nThis is normal totem behaviour.");
-        comments.put("effects.list", "Potion effects to apply after resurrection." +
-                                     "\nA list of ids can be found here: https://minecraft.fandom.com/wiki/Effect#Effect_list" +
-                                     "\n (Please only look at values that are present in the Java Edition)");
+        comments.put("effects.list", "Potion effects to apply after resurrection.");
         comments.put("animation.teleportParticles", "Whether to display teleport particles after resurrection.");
         comments.put("animation.teleportSound", "Whether to play a teleport sound and delay totem effects for a short amount of time.");
         comments.put("animation.totemEffects", "Whether to display the totem effects (animation, particles and sound).");
@@ -192,7 +211,7 @@ public class Config {
                         tree.add(parents.get(j));
                     String key = String.join(".", tree);
                     if (comments.containsKey(key)) {
-                        if (lastIndent == indent)
+                        if (lastIndent >= indent)
                             sb.append("\n");
 
                         String prefix = StringUtils.repeat(" ", indent) + "# ";
@@ -213,6 +232,18 @@ public class Config {
 
         AtomicBoolean mistakes = new AtomicBoolean(false);
         Logger logger = VoidTotem.getInstance().getLogger();
+        PlatformData platform = config.search.platform;
+        if (platform.enabled) {
+            Material material = Material.matchMaterial(platform.block);
+            if (material == null) {
+                logger.severe(getMessage("config.search.platform.block_not_found").replace("%block%", platform.block));
+                mistakes.set(true);
+            } else if (!material.isSolid()) {
+                logger.severe(getMessage("config.search.platform.not_a_block").replace("%block%", platform.block));
+                mistakes.set(true);
+            }
+        }
+
         AdvancementData advancement = config.playerData.advancement;
         if (advancement.enabled) {
             String[] keySplit = advancement.advancement.split(":");
@@ -331,7 +362,7 @@ public class Config {
 
     public boolean checkForUpdates = true;
     public double healthTrigger = 0;
-    public int searchDistance = 100;
+    public SearchData search = new SearchData();
     public boolean patchKillCommand = true;
     public boolean onlySavePlayers = false;
     public boolean forceTeleport = false;
@@ -340,6 +371,31 @@ public class Config {
     public EffectsData effects = new EffectsData();
     public AnimationData animation = new AnimationData();
     public ItemData item = new ItemData();
+
+    public static class SearchData {
+
+        public int distance = 100;
+        public PlatformData platform = new PlatformData();
+
+        public static class PlatformData {
+
+            public boolean enabled = true;
+            public int size = 2;
+            public int height = 70;
+            public String block = "minecraft:cobblestone";
+            public boolean breakable = false;
+            public DisappearData disappear = new DisappearData();
+
+            public static class DisappearData {
+
+                public boolean enabled = true;
+                public boolean waitForPlayer = true;
+                public int delay = 10;
+                public boolean hologram = true;
+                public boolean sound = true;
+            }
+        }
+    }
 
     public static class PlayerData {
 

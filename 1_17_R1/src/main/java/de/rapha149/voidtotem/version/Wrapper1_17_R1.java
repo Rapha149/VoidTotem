@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipes;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.SoundGroup;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -81,6 +82,12 @@ public class Wrapper1_17_R1 implements VersionWrapper {
     @Override
     public boolean isPassable(Block block) {
         return block.isPassable();
+    }
+
+    @Override
+    public void playBreakSound(Block block) {
+        SoundGroup group = block.getBlockData().getSoundGroup();
+        block.getWorld().playSound(block.getLocation().add(0.5, 0.5, 0.5), group.getBreakSound(), group.getVolume(), group.getPitch());
     }
 
     @Override

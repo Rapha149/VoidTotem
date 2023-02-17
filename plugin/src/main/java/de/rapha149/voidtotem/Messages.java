@@ -23,6 +23,8 @@ public class Messages {
         messageConfig.addDefault("plugin.up_to_date", "Your version of this plugin is up to date!");
         messageConfig.addDefault("plugin.outdated", "There's a new version available for this plugin: %version%" +
                                                     "\nYou can download it from: %url%");
+        messageConfig.addDefault("config.search.platform.block_not_found", "The block \"%block%\" does not exist (search platform). The fallback is \"minecraft:cobblestone\".");
+        messageConfig.addDefault("config.search.platform.not_a_block", "The material \"%block%\" is not a solid block (search platform). The fallback is \"minecraft:cobblestone\".");
         messageConfig.addDefault("config.advancement.invalid_key", "Invalid advancement key \"%key%\"");
         messageConfig.addDefault("config.advancement.not_found", "There's no advancement with the key \"%key%\"");
         messageConfig.addDefault("config.potion_effect_not_found", "There's no potion effect with the id \"%id%\"");
@@ -46,6 +48,12 @@ public class Messages {
         messageConfig.addDefault("giveitem.self.success", "%prefix%&7A void totem item was given to you.");
         messageConfig.addDefault("giveitem.others.no_empty_slot", "%prefix%&7%player% &chas no empty slot in your inventory.");
         messageConfig.addDefault("giveitem.others.success", "%prefix%&7A void totem item was given to &6%player%&7.");
+        messageConfig.addDefault("platform_hologram.wait_for_player", "&c! Attention !" +
+                                                      "\n§6This platform is only temporary." +
+                                                      "\n§6It will be destroyed once you leave it.");
+        messageConfig.addDefault("platform_hologram.delay", "&c! Attention !" +
+                                                      "\n§6This platform is only temporary." +
+                                                      "\n§6It will be destroyed in &c%time% &6seconds.");
     }
 
     public static void loadMessages() {
