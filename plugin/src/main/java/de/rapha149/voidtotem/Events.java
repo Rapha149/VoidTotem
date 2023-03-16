@@ -372,7 +372,7 @@ public class Events implements Listener {
         }
 
         private void loadHolograms() {
-            removeHolograms();
+            List<ArmorStand> previousArmorStands = removeHolograms(false);
 
             String[] lines = Messages.getMessage("platform_hologram." + (disappearTime == -1 ? "wait_for_player" : "delay")).split("\\n");
             double startOffset = 2.5 + Math.floor(lines.length / 2D) * HOLOGRAM_LINE_DISTANCE + (lines.length % 2 == 0 ? HOLOGRAM_LINE_DISTANCE / 2D : 0);
@@ -380,19 +380,28 @@ public class Events implements Listener {
 
             boolean adaptingLines = false;
             for (String line : lines) {
-                ArmorStand armorStand = (ArmorStand) loc.getWorld().spawnEntity(currentLoc, EntityType.ARMOR_STAND);
+                ArmorStand armorStand;
+                if (previousArmorStands.isEmpty()) {
+                    armorStand = (ArmorStand) loc.getWorld().spawnEntity(currentLoc, EntityType.ARMOR_STAND);
+                    armorStand.setCustomNameVisible(true);
+                    armorStand.setMarker(true);
+                    armorStand.setVisible(false);
+                    armorStand.setSilent(true);
+                } else {
+                    armorStand = previousArmorStands.remove(0);
+                    armorStand.teleport(currentLoc);
+                }
+
                 if (line.contains("%time%")) {
                     adaptingLines = true;
                     armorStand.setCustomName(line.replace("%time%", String.valueOf(disappearTime - System.currentTimeMillis() / 1000)));
                 } else
                     armorStand.setCustomName(line);
-                armorStand.setCustomNameVisible(true);
-                armorStand.setMarker(true);
-                armorStand.setVisible(false);
-                armorStand.setSilent(true);
                 holograms.put(armorStand, line);
                 currentLoc.subtract(0, HOLOGRAM_LINE_DISTANCE, 0);
             }
+
+            previousArmorStands.forEach(ArmorStand::remove);
 
             if (adaptingLines) {
                 hologramTask = Bukkit.getScheduler().runTaskTimer(VoidTotem.getInstance(), () -> {
@@ -402,16 +411,24 @@ public class Events implements Listener {
             }
         }
 
-        private void removeHolograms() {
-            holograms.keySet().forEach(ArmorStand::remove);
+        private List<ArmorStand> removeHolograms(boolean removeArmorStands) {
+            List<ArmorStand> armorStands;
+            if (removeArmorStands) {
+                holograms.keySet().forEach(ArmorStand::remove);
+                armorStands = Collections.emptyList();
+            } else
+                armorStands = new ArrayList<>(holograms.keySet());
+
             holograms.clear();
             if (hologramTask != null && !hologramTask.isCancelled())
                 hologramTask.cancel();
+
+            return armorStands;
         }
 
         private void scheduleDisappear(int delay) {
             Bukkit.getScheduler().runTaskLater(VoidTotem.getInstance(), () -> {
-                removeHolograms();
+                removeHolograms(true);
                 replacedBlocks.forEach((block, data) -> {
                     if (Config.get().search.platform.disappear.sound)
                         VoidTotem.getInstance().wrapper.playBreakSound(block);
