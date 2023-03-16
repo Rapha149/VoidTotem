@@ -247,4 +247,4 @@ This plugin collects anonymous server stats with [bStats](https://bstats.org), a
 
 ## Credits
 
-Credits go to [laGameTV](https://github.com/laGameTV) for the idea of the plugin.
+Credits go to [laGameTV](https://lagametv.de/) for the idea of the plugin.
