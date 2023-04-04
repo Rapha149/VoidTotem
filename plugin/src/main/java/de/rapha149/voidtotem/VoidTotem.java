@@ -17,6 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,8 +36,8 @@ public final class VoidTotem extends JavaPlugin {
 
         String nmsVersion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3].substring(1);
         try {
-            wrapper = (VersionWrapper) Class.forName(VersionWrapper.class.getPackage().getName() + ".Wrapper" + nmsVersion).newInstance();
-        } catch (IllegalAccessException | InstantiationException e) {
+            wrapper = (VersionWrapper) Class.forName(VersionWrapper.class.getPackage().getName() + ".Wrapper" + nmsVersion).getDeclaredConstructor().newInstance();
+        } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Failed to load support for server version \"" + nmsVersion + "\"");
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("VoidTotem does not fully support the server version \"" + nmsVersion + "\"");
@@ -131,14 +132,20 @@ public final class VoidTotem extends JavaPlugin {
             return map;
         }));
         metrics.addCustomChart(new SimplePie("item_in_hand", () -> String.valueOf(Config.get().item.hasToBeInHand)));
-        metrics.addCustomChart(new DrilldownPie("custom_recipe", () -> {
+        metrics.addCustomChart(new DrilldownPie("custom_item", () -> {
             Map<String, Map<String, Integer>> map = new HashMap<>();
             Map<String, Integer> entry = new HashMap<>();
             Material mat = Material.getMaterial(Config.get().item.result.item.toUpperCase());
             if (mat != null)
                 entry.put(mat.toString().toLowerCase(), 1);
-            map.put(String.valueOf(Config.get().item.customRecipe), entry);
+            map.put(String.valueOf(Config.get().item.customItem), entry);
             return map;
+        }));
+        metrics.addCustomChart(new SimplePie("enable_recipe", () -> {
+            ItemData item = Config.get().item;
+            if (!item.customItem)
+                return "No custom item";
+            return String.valueOf(item.enableRecipe);
         }));
     }
 
@@ -147,13 +154,13 @@ public final class VoidTotem extends JavaPlugin {
 
         if (Streams.stream(Bukkit.recipeIterator()).anyMatch(recipe ->
                 (recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().equals(RECIPE_KEY) ||
-                 (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(RECIPE_KEY))))) {
+                        (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(RECIPE_KEY))))) {
             getLogger().warning(getMessage("old_recipe_not_removed"));
             return;
         }
 
         ItemData itemData = Config.get().item;
-        if (itemData.customRecipe && itemData.result.valid && itemData.recipe.valid) {
+        if (itemData.customItem && itemData.enableRecipe && itemData.result.valid && itemData.recipe.valid) {
             ItemStack result = itemData.result.getItemStack();
             RecipeData recipeData = itemData.recipe;
             if (!recipeData.shaped) {

@@ -13,7 +13,7 @@ If you are resurrected by the totem you will be teleported onto a nearby block w
 
 The default `config.yml` looks like this:
 ```yml
-# VoidTotem version 1.7.1
+# VoidTotem version 1.8
 # Github: https://github.com/Rapha149/VoidTotem
 # Spigot: https://www.spigotmc.org/resources/void-totem.99003/
 
@@ -123,15 +123,15 @@ effects:
 
   # Potion effects to apply after resurrection.
   list:
-  - name: REGENERATION
-    duration: 45
-    amplifier: 1
-  - name: FIRE_RESISTANCE
-    duration: 40
-    amplifier: 0
-  - name: ABSORPTION
-    duration: 5
-    amplifier: 1
+    - name: REGENERATION
+      duration: 45
+      amplifier: 1
+    - name: FIRE_RESISTANCE
+      duration: 40
+      amplifier: 0
+    - name: ABSORPTION
+      duration: 5
+      amplifier: 1
 
 animation:
   # Whether to display teleport particles after resurrection.
@@ -149,11 +149,16 @@ item:
   # If enabled, the totem has to be in the mainhand or the offhand, just like a normal totem.
   hasToBeInHand: true
 
-  # Whether to use a custom item and recipe for the totem item.
+  # Whether to use a custom item (and recipe) for the totem item.
   # If you made a mistake with the custom item you will be notified in the console and the item won't work.
   # Please note: if you've changed something for the recipe and reloaded the config you may have to rejoin for the changes to take effect.
   # Please also note: if you change the resulting item, earlier crafted totems will still work.
-  customRecipe: false
+  customItem: false
+
+  # Whether to add a recipe for the custom totem item.
+  # Only used when "customItem" is enabled.
+  # If disabled the custom totem item can only be obtained using the command.
+  enableRecipe: true
 
   # If enabled, and "customRecipe" is enabled, you won't be able to use the custom totems for normal totem resurrections.
   # This also applies for totems that were given to players using the command
@@ -187,7 +192,7 @@ item:
     # If given in the NBT string, the lore in the NBT string will override this.
     # Set to "[]" to disable.
     lore:
-    - '&7Save yourself from the void!'
+      - '&7Save yourself from the void!'
 
     # The NBT string to apply to the item.
     # Set to "{}" to disable.
@@ -207,17 +212,17 @@ item:
     # The ingredients in case "shaped" is disabled.
     # You have to provide at least 1 and at most 9 ingredients.
     shapelessIngredients:
-    - totem_of_undying
-    - ender_pearl
-    - chorus_fruit
+      - totem_of_undying
+      - ender_pearl
+      - chorus_fruit
 
     # The ingredients in case "shaped" is enabled.
     # The shape may differ from the original 3x3. For example it can be 2x3, 3x2 or 2x2.
     # You have to provide at least 1 and at most 3 rows and at least 1 and at most 3 ingredients per row.
     shapedIngredients:
-    - chorus_fruit | diamond | chorus_fruit
-    - ender_pearl | totem_of_undying | ender_pearl
-    - chorus_fruit | diamond | chorus_fruit
+      - chorus_fruit | diamond | chorus_fruit
+      - ender_pearl | totem_of_undying | ender_pearl
+      - chorus_fruit | diamond | chorus_fruit
 ```
 
 If you need any help regarding the config, don't hesitate to ask, I tried to explain it as clearly as possible.

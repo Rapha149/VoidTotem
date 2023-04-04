@@ -43,7 +43,7 @@ public class Events implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onResurrect(EntityResurrectEvent event) {
         Config config = Config.get();
-        if (!config.item.customRecipe || !config.item.noNormalResurrection)
+        if (!config.item.customItem || !config.item.noNormalResurrection)
             return;
 
         VersionWrapper wrapper = VoidTotem.getInstance().wrapper;
@@ -98,7 +98,7 @@ public class Events implements Listener {
         Boolean mainHand = null;
         EntityEquipment equipment = entity.getEquipment();
         PlayerInventory inv = isPlayer ? player.getInventory() : null;
-        if (config.item.customRecipe) {
+        if (config.item.customItem) {
             if (!config.item.result.valid)
                 return;
 
