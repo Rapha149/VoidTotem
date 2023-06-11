@@ -6,7 +6,7 @@
 
     <groupId>de.rapha149.voidtotem</groupId>
     <artifactId>VoidTotem-parent</artifactId>
-    <version>1.8</version>
+    <version>1.8.1</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -25,6 +25,7 @@
         <module>1_19_R1</module>
         <module>1_19_R2</module>
         <module>1_19_R3</module>
+        <module>1_20_R1</module>
     </modules>
 
     <properties>
@@ -59,6 +60,10 @@
                                 <relocation>
                                     <pattern>net.kyori</pattern>
                                     <shadedPattern>de.rapha149.voidtotem.kyori</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.yaml.snakeyaml</pattern>
+                                    <shadedPattern>de.rapha149.voidtotem.snakeyaml</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
