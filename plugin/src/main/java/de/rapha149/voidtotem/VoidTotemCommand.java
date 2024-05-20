@@ -1,7 +1,7 @@
 package de.rapha149.voidtotem;
 
-import de.rapha149.voidtotem.version.VersionWrapper;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -29,8 +29,8 @@ public class VoidTotemCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (args.length < 1 || !args[0].toLowerCase().matches("reload|giveitem")) {
-            sender.sendMessage(getMessage("syntax").replace("%syntax%", alias + " <reload|giveitem>"));
+        if (args.length < 1 || !args[0].toLowerCase().matches("reload|giveitem|isvoidtotem|makevoidtotem")) {
+            sender.sendMessage(getMessage("syntax").replace("%syntax%", alias + " <reload|giveitem|isvoidtotem|makevoidtotem>"));
             return true;
         }
 
@@ -48,14 +48,14 @@ public class VoidTotemCommand implements CommandExecutor, TabCompleter {
                         sender.sendMessage(getMessage("reload.success"));
                     else if (isPlayer)
                         sender.sendMessage(getMessage("reload.mistakes"));
-                    VoidTotem.getInstance().loadRecipe();
+                    Util.loadRecipe();
                 } catch (IOException e) {
                     e.printStackTrace();
                     if (isPlayer)
                         sender.sendMessage(getMessage("error"));
                 }
                 break;
-            case "giveitem":
+            case "giveitem": {
                 if (!sender.hasPermission("voidtotem.giveitem")) {
                     sender.sendMessage(getMessage("no_permission"));
                     break;
@@ -77,9 +77,8 @@ public class VoidTotemCommand implements CommandExecutor, TabCompleter {
                     break;
                 }
 
-                VersionWrapper wrapper = VoidTotem.getInstance().wrapper;
                 ItemStack item = Config.get().item.result.getItemStack();
-                if(item == null) {
+                if (item == null) {
                     sender.sendMessage(getMessage("giveitem.item_not_valid"));
                     break;
                 }
@@ -91,9 +90,66 @@ public class VoidTotemCommand implements CommandExecutor, TabCompleter {
                     break;
                 }
 
-                inventory.addItem(wrapper.addIdentifier(item));
+                inventory.addItem(item);
                 sender.sendMessage(getMessage(messagePrefix + "success").replace("%player%", target.getName()));
                 break;
+            }
+            case "isvoidtotem": {
+                if (!sender.hasPermission("voidtotem.isvoidtotem")) {
+                    sender.sendMessage(getMessage("no_permission"));
+                    break;
+                }
+
+                if (!isPlayer) {
+                    sender.sendMessage(getMessage("not_player"));
+                    break;
+                }
+
+                if (!Config.get().item.customItem) {
+                    sender.sendMessage(getMessage("isvoidtotem.no_custom_item"));
+                    break;
+                }
+
+                ItemStack item = ((Player) sender).getInventory().getItemInMainHand();
+                if (item == null || item.getType() != Material.TOTEM_OF_UNDYING) {
+                    sender.sendMessage(getMessage("isvoidtotem.no_totem_in_hand"));
+                    break;
+                }
+
+                sender.sendMessage(getMessage("isvoidtotem." + (Util.hasIdentifier(item) ? "is_void_totem" : "is_not_void_totem")));
+                break;
+            }
+            case "makevoidtotem":{
+                if (!sender.hasPermission("voidtotem.makevoidtotem")) {
+                    sender.sendMessage(getMessage("no_permission"));
+                    break;
+                }
+
+                if (!isPlayer) {
+                    sender.sendMessage(getMessage("not_player"));
+                    break;
+                }
+
+                if (!Config.get().item.customItem) {
+                    sender.sendMessage(getMessage("makevoidtotem.no_custom_item"));
+                    break;
+                }
+
+                ItemStack item = ((Player) sender).getInventory().getItemInMainHand();
+                if (item == null || item.getType() != Material.TOTEM_OF_UNDYING) {
+                    sender.sendMessage(getMessage("makevoidtotem.no_totem_in_hand"));
+                    break;
+                }
+
+                if (Util.hasIdentifier(item)) {
+                    sender.sendMessage(getMessage("makevoidtotem.already_void_totem"));
+                    break;
+                }
+
+                Util.addIdentifier(item);
+                sender.sendMessage(getMessage("makevoidtotem.success"));
+                break;
+            }
         }
         return true;
     }
@@ -109,6 +165,10 @@ public class VoidTotemCommand implements CommandExecutor, TabCompleter {
                 completions.add("reload");
             if (sender.hasPermission("voidtotem.giveitem"))
                 completions.add("giveitem");
+            if (sender.hasPermission("voidtotem.isvoidtotem"))
+                completions.add("isvoidtotem");
+            if (sender.hasPermission("voidtotem.makevoidtotem"))
+                completions.add("makevoidtotem");
         } else if (args.length == 2 && sender.hasPermission("voidtotem.giveitem") &&
                    args[0].equalsIgnoreCase("giveitem")) {
             Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(completions::add);

@@ -15,10 +15,6 @@ public interface VersionWrapper {
 
     ItemStack applyNBT(ItemStack item, String nbt) throws IllegalArgumentException;
 
-    ItemStack addIdentifier(ItemStack item);
-
-    boolean hasIdentifier(ItemStack item);
-
     void removeRecipe(NamespacedKey key);
 
     String getPotionEffectName(PotionEffectType type);

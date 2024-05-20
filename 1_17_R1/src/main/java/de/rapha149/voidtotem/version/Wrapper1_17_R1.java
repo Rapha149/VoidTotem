@@ -2,7 +2,6 @@ package de.rapha149.voidtotem.version;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.nbt.MojangsonParser;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipes;
@@ -38,24 +37,6 @@ public class Wrapper1_17_R1 implements VersionWrapper {
         } catch (CommandSyntaxException e) {
             throw new IllegalArgumentException("Can't read nbt string", e);
         }
-    }
-
-    @Override
-    public org.bukkit.inventory.ItemStack addIdentifier(org.bukkit.inventory.ItemStack item) {
-        ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        nmsItem.getOrCreateTag().setBoolean(IDENTIFIER, true);
-        return CraftItemStack.asBukkitCopy(nmsItem);
-    }
-
-    @Override
-    public boolean hasIdentifier(org.bukkit.inventory.ItemStack item) {
-        ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        if(!nmsItem.hasTag())
-            return false;
-        NBTTagCompound nbt = nmsItem.getTag();
-        if(!nbt.hasKey(IDENTIFIER))
-            return false;
-        return nbt.getBoolean(IDENTIFIER);
     }
 
     @Override

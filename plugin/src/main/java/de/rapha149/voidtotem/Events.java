@@ -3,7 +3,6 @@ package de.rapha149.voidtotem;
 import de.rapha149.voidtotem.Config.PlayerData.AdvancementData;
 import de.rapha149.voidtotem.Config.SearchData.PlatformData;
 import de.rapha149.voidtotem.Config.SearchData.PlatformData.DisappearData;
-import de.rapha149.voidtotem.version.VersionWrapper;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
@@ -46,15 +45,14 @@ public class Events implements Listener {
         if (!config.item.customItem || !config.item.noNormalResurrection)
             return;
 
-        VersionWrapper wrapper = VoidTotem.getInstance().wrapper;
         LivingEntity entity = event.getEntity();
         EntityEquipment equipment = entity.getEquipment();
         ItemStack mainHandItem = equipment.getItemInMainHand(),
                 offHandItem = equipment.getItemInOffHand();
         boolean mainHandNormal = mainHandItem.getType() == Material.TOTEM_OF_UNDYING,
                 offHandNormal = offHandItem.getType() == Material.TOTEM_OF_UNDYING,
-                mainHandCustom = wrapper.hasIdentifier(mainHandItem),
-                offHandCustom = wrapper.hasIdentifier(offHandItem);
+                mainHandCustom = Util.hasIdentifier(mainHandItem),
+                offHandCustom = Util.hasIdentifier(offHandItem);
 
         if (!mainHandCustom && !offHandCustom)
             return;
@@ -85,13 +83,12 @@ public class Events implements Listener {
 
         LivingEntity entity = (LivingEntity) event.getEntity();
         Player player = isPlayer ? (Player) entity : null;
-        VersionWrapper wrapper = VoidTotem.getInstance().wrapper;
 
-        double health = entity.getHealth() + wrapper.getAbsorptionHearts(entity) - event.getDamage();
+        double health = entity.getHealth() + Util.WRAPPER.getAbsorptionHearts(entity) - event.getDamage();
         if (health > config.healthTrigger)
             return;
 
-        if (config.patchKillCommand && entity.getLocation().getY() >= wrapper.getDownwardHeightLimit(entity.getWorld()))
+        if (config.patchKillCommand && entity.getLocation().getY() >= Util.WRAPPER.getDownwardHeightLimit(entity.getWorld()))
             return;
 
         ItemStack usedItem = null;
@@ -103,14 +100,14 @@ public class Events implements Listener {
                 return;
 
             if (config.item.hasToBeInHand || !isPlayer) {
-                mainHand = wrapper.hasIdentifier(equipment.getItemInMainHand());
-                if (!mainHand && !wrapper.hasIdentifier(equipment.getItemInOffHand()))
+                mainHand = Util.hasIdentifier(equipment.getItemInMainHand());
+                if (!mainHand && !Util.hasIdentifier(equipment.getItemInOffHand()))
                     return;
                 usedItem = mainHand ? equipment.getItemInMainHand() : equipment.getItemInOffHand();
             } else {
                 for (int i = 0; i < inv.getSize(); i++) {
                     ItemStack item = inv.getItem(i);
-                    if (item != null && wrapper.hasIdentifier(item)) {
+                    if (item != null && Util.hasIdentifier(item)) {
                         usedItem = item;
                         break;
                     }
@@ -188,9 +185,9 @@ public class Events implements Listener {
                 blocks.add(new int[]{x, z});
 
             for (int[] coords : blocks) {
-                Block block = wrapper.getHighestEmptyBlockAt(world, coords[0], coords[1]);
-                if (block.getRelative(BlockFace.DOWN).getType().isSolid() && wrapper.isPassable(block) &&
-                    wrapper.isPassable(block.getRelative(BlockFace.UP))) {
+                Block block = Util.WRAPPER.getHighestEmptyBlockAt(world, coords[0], coords[1]);
+                if (block.getRelative(BlockFace.DOWN).getType().isSolid() && Util.WRAPPER.isPassable(block) &&
+                    Util.WRAPPER.isPassable(block.getRelative(BlockFace.UP))) {
                     loc = block.getLocation();
                     break;
                 }
@@ -431,7 +428,7 @@ public class Events implements Listener {
                 removeHolograms(true);
                 replacedBlocks.forEach((block, data) -> {
                     if (Config.get().search.platform.disappear.sound)
-                        VoidTotem.getInstance().wrapper.playBreakSound(block);
+                        Util.WRAPPER.playBreakSound(block);
                     block.setBlockData(data);
                 });
                 replacedBlocks.clear();

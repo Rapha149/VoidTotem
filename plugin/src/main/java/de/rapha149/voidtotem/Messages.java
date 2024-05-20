@@ -40,6 +40,7 @@ public class Messages {
         messageConfig.addDefault("error", "%prefix%&cAn error occured. Check the console for details.");
         messageConfig.addDefault("syntax", "%prefix%&cSyntax error! Please use &7/%syntax%&c.");
         messageConfig.addDefault("no_permission", "%prefix%&cYou do not have enough permissions to perform this action.");
+        messageConfig.addDefault("not_player", "%prefix%&cYou have to be a player to perform this action.");
         messageConfig.addDefault("player_not_found", "%prefix%&cThere's no player with the name &7%name%&c.");
         messageConfig.addDefault("reload.mistakes", "%prefix%&6You made some mistakes in the config, check the console for details.");
         messageConfig.addDefault("reload.success", "%prefix%&7Config was reloaded.");
@@ -48,6 +49,14 @@ public class Messages {
         messageConfig.addDefault("giveitem.self.success", "%prefix%&7A void totem item was given to you.");
         messageConfig.addDefault("giveitem.others.no_empty_slot", "%prefix%&7%player% &chas no empty slot in your inventory.");
         messageConfig.addDefault("giveitem.others.success", "%prefix%&7A void totem item was given to &6%player%&7.");
+        messageConfig.addDefault("isvoidtotem.no_custom_item", "%prefix%&6You don't have §ecustomItem §6enabled in the config, therefore every totem is a void totem.");
+        messageConfig.addDefault("isvoidtotem.no_totem_in_hand", "%prefix%&6You don't have a totem in your main hand.");
+        messageConfig.addDefault("isvoidtotem.is_not_void_totem", "%prefix%&cThe totem in your main hand is §4not §ca void totem.");
+        messageConfig.addDefault("isvoidtotem.is_void_totem", "%prefix%&aThe totem in your main hand is a void totem.");
+        messageConfig.addDefault("makevoidtotem.no_custom_item", "%prefix%&6You don't have §ecustomItem §6enabled in the config, therefore every totem is a void totem.");
+        messageConfig.addDefault("makevoidtotem.no_totem_in_hand", "%prefix%&6You don't have a totem in your main hand.");
+        messageConfig.addDefault("makevoidtotem.already_void_totem", "%prefix%&6The totem in your main hand was already a void totem.");
+        messageConfig.addDefault("makevoidtotem.success", "%prefix%&7The totem in your main hand is now a void totem.");
         messageConfig.addDefault("platform_hologram.wait_for_player", "&c! Attention !" +
                                                       "\n§6This platform is only temporary." +
                                                       "\n§6It will be destroyed once you leave it.");

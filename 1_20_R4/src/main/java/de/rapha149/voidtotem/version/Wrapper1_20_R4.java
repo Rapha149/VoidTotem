@@ -1,28 +1,24 @@
 package de.rapha149.voidtotem.version;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.nbt.MojangsonParser;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingManager;
-import net.minecraft.world.item.crafting.IRecipe;
-import net.minecraft.world.item.crafting.Recipes;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.SoundGroup;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R4.CraftServer;
+import org.bukkit.craftbukkit.v1_20_R4.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffectType;
 
-import java.lang.reflect.Field;
-import java.util.Map;
-
-public class Wrapper1_19_R3 implements VersionWrapper {
+public class Wrapper1_20_R4 implements VersionWrapper {
 
     @Override
     public boolean verifyNBT(String nbt) {
@@ -38,8 +34,9 @@ public class Wrapper1_19_R3 implements VersionWrapper {
     public org.bukkit.inventory.ItemStack applyNBT(org.bukkit.inventory.ItemStack item, String nbt) {
         try {
             ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-            nmsItem.v().a(MojangsonParser.a(nbt));
-            return CraftItemStack.asBukkitCopy(nmsItem);
+            NBTTagCompound itemNBT = ((NBTTagCompound) nmsItem.b(VanillaRegistries.a()));
+            itemNBT.p("components").a(MojangsonParser.a(nbt));
+            return CraftItemStack.asBukkitCopy(ItemStack.a(VanillaRegistries.a(), itemNBT));
         } catch (CommandSyntaxException e) {
             throw new IllegalArgumentException("Can't read nbt string", e);
         }
@@ -47,19 +44,9 @@ public class Wrapper1_19_R3 implements VersionWrapper {
 
     @Override
     public void removeRecipe(NamespacedKey key) {
-        CraftingManager manager = ((CraftServer) Bukkit.getServer()).getServer().aE();
+        CraftingManager manager = ((CraftServer) Bukkit.getServer()).getServer().aJ();
         MinecraftKey minecraftKey = new MinecraftKey(key.getNamespace(), key.getKey());
-        manager.c.get(Recipes.a).remove(minecraftKey);
-
-        try {
-            Field field = manager.getClass().getDeclaredField("d");
-            field.setAccessible(true);
-            Map<MinecraftKey, IRecipe<?>> map = (Map<MinecraftKey, IRecipe<?>>) field.get(manager);
-            if (!(map instanceof ImmutableMap<MinecraftKey, IRecipe<?>>))
-                map.remove(minecraftKey);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        manager.removeRecipe(minecraftKey);
     }
 
     @Override

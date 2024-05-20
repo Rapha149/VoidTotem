@@ -4,7 +4,6 @@ import de.rapha149.voidtotem.Config.ItemData.RecipeData;
 import de.rapha149.voidtotem.Config.ItemData.ResultData;
 import de.rapha149.voidtotem.Config.PlayerData.AdvancementData;
 import de.rapha149.voidtotem.Config.SearchData.PlatformData;
-import de.rapha149.voidtotem.version.VersionWrapper;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
@@ -127,7 +126,7 @@ public class Config {
         comments.put("item.result.nbt", "The NBT string to apply to the item." +
                 "\nSet to \"{}\" to disable." +
                 "\nIf you want to include ' in your nbt string, you can escape them using ''" +
-                "\n\"HideFlags: 1\" which is given by default is used to hide the enchantments." +
+                "\n\nPlease note that the default value only works for 1.20.5+" +
                 "\n\nIf you don't know how NBT works, see this tutorial: https://minecraft.fandom.com/wiki/Tutorials/Command_NBT_tags" +
                 "\n or use a /give generator and copy everything from { to }. Give command generator examples:" +
                 "\n - https://mcstacker.net (click on the \"/give\" button)" +
@@ -197,7 +196,6 @@ public class Config {
             config = new Config();
         }
 
-        VersionWrapper wrapper = VoidTotem.getInstance().wrapper;
         try (FileWriter writer = new FileWriter(file)) {
             Pattern pattern = Pattern.compile("((\\s|-)*)(\\w+):( .+)?");
             Map<Integer, String> parents = new HashMap<>();
@@ -298,7 +296,7 @@ public class Config {
                 mistakes.set(true);
             }
 
-            if (!wrapper.verifyNBT(result.nbt)) {
+            if (!Util.WRAPPER.verifyNBT(result.nbt)) {
                 logger.severe(getMessage("config.recipe.result_item.invalid_nbt"));
                 result.valid = false;
                 mistakes.set(true);
@@ -307,13 +305,13 @@ public class Config {
             if(item.enableRecipe) {
                 RecipeData recipe = item.recipe;
                 if (!recipe.shaped) {
-                    if (recipe.shapelessIngredients.size() == 0 || recipe.shapelessIngredients.size() > 9) {
+                    if (recipe.shapelessIngredients.isEmpty() || recipe.shapelessIngredients.size() > 9) {
                         logger.severe(getMessage("config.recipe.shapeless_ingredients_invalid_count"));
                         recipe.valid = false;
                         mistakes.set(true);
                     }
                 } else {
-                    if (recipe.shapedIngredients.size() == 0 || recipe.shapedIngredients.size() > 3) {
+                    if (recipe.shapedIngredients.isEmpty() || recipe.shapedIngredients.size() > 3) {
                         logger.severe(getMessage("config.recipe.shaped.ingredient_rows_invalid_count"));
                         recipe.valid = false;
                         mistakes.set(true);
@@ -342,7 +340,8 @@ public class Config {
 
         if (result.valid) {
             if (!item.customItem) {
-                result.itemStack = wrapper.addIdentifier(new ItemStack(Material.TOTEM_OF_UNDYING));
+                result.itemStack = new ItemStack(Material.TOTEM_OF_UNDYING);
+                Util.addIdentifier(result.itemStack);
             } else {
                 ItemStack itemStack = new ItemStack(Material.getMaterial(result.item.toUpperCase()), result.count);
                 ItemMeta meta = itemStack.getItemMeta();
@@ -351,8 +350,9 @@ public class Config {
                 if (!result.lore.isEmpty())
                     meta.setLore(result.lore.stream().map(Config::colorize).collect(Collectors.toList()));
                 itemStack.setItemMeta(meta);
-                itemStack = wrapper.applyNBT(itemStack, result.nbt);
-                result.itemStack = wrapper.addIdentifier(itemStack);
+                itemStack = Util.WRAPPER.applyNBT(itemStack, result.nbt);
+                Util.addIdentifier(itemStack);
+                result.itemStack = itemStack;
             }
         } else
             result.itemStack = null;
@@ -477,7 +477,7 @@ public class Config {
             public int count = 1;
             public String name = "&6Void &eTotem";
             public List<String> lore = Arrays.asList("&7Save yourself from the void!");
-            public String nbt = "{HideFlags: 1, Enchantments: [{id: \"minecraft:unbreaking\", lvl: 1}]}";
+            public String nbt = "{\"minecraft:enchantments\": {\"show_in_tooltip\": 0b, levels: {\"minecraft:unbreaking\": 1}}}";
 
             public transient boolean valid = true;
             private transient ItemStack itemStack;

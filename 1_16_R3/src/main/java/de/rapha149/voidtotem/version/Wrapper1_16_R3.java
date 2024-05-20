@@ -1,8 +1,13 @@
 package de.rapha149.voidtotem.version;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.*;
+import net.minecraft.server.v1_16_R3.ItemStack;
+import net.minecraft.server.v1_16_R3.MinecraftKey;
+import net.minecraft.server.v1_16_R3.MojangsonParser;
+import net.minecraft.server.v1_16_R3.Recipes;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.SoundGroup;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -32,24 +37,6 @@ public class Wrapper1_16_R3 implements VersionWrapper {
         } catch (CommandSyntaxException e) {
             throw new IllegalArgumentException("Can't read nbt string", e);
         }
-    }
-
-    @Override
-    public org.bukkit.inventory.ItemStack addIdentifier(org.bukkit.inventory.ItemStack item) {
-        ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        nmsItem.getOrCreateTag().setBoolean(IDENTIFIER, true);
-        return CraftItemStack.asBukkitCopy(nmsItem);
-    }
-
-    @Override
-    public boolean hasIdentifier(org.bukkit.inventory.ItemStack item) {
-        ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        if(!nmsItem.hasTag())
-            return false;
-        NBTTagCompound nbt = nmsItem.getTag();
-        if(!nbt.hasKey(IDENTIFIER))
-            return false;
-        return nbt.getBoolean(IDENTIFIER);
     }
 
     @Override

@@ -1,18 +1,12 @@
 package de.rapha149.voidtotem;
 
-import com.google.common.collect.Streams;
 import de.rapha149.voidtotem.Config.ItemData;
-import de.rapha149.voidtotem.Config.ItemData.RecipeData;
 import de.rapha149.voidtotem.Metrics.AdvancedPie;
 import de.rapha149.voidtotem.Metrics.DrilldownPie;
 import de.rapha149.voidtotem.Metrics.SimplePie;
 import de.rapha149.voidtotem.version.VersionWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 
@@ -25,18 +19,16 @@ import static de.rapha149.voidtotem.Messages.getMessage;
 
 public final class VoidTotem extends JavaPlugin {
 
-    private final NamespacedKey RECIPE_KEY = new NamespacedKey(this, "void_totem");
-
     private static VoidTotem instance;
-    public VersionWrapper wrapper;
 
     @Override
     public void onEnable() {
         instance = this;
+        Util.LOGGER = getLogger();
 
-        String nmsVersion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3].substring(1);
+        String nmsVersion = getNMSVersion();
         try {
-            wrapper = (VersionWrapper) Class.forName(VersionWrapper.class.getPackage().getName() + ".Wrapper" + nmsVersion).getDeclaredConstructor().newInstance();
+            Util.WRAPPER = (VersionWrapper) Class.forName(VersionWrapper.class.getPackage().getName() + ".Wrapper" + nmsVersion).getDeclaredConstructor().newInstance();
         } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Failed to load support for server version \"" + nmsVersion + "\"");
         } catch (ClassNotFoundException e) {
@@ -67,7 +59,7 @@ public final class VoidTotem extends JavaPlugin {
             }
         }
 
-        loadRecipe();
+        Util.loadRecipe();
         new VoidTotemCommand(getCommand("voidtotem"));
         getServer().getPluginManager().registerEvents(new Events(), this);
         getLogger().info(getMessage("plugin.enable"));
@@ -80,6 +72,26 @@ public final class VoidTotem extends JavaPlugin {
 
     public static VoidTotem getInstance() {
         return instance;
+    }
+
+    private String getNMSVersion() {
+        String craftBukkitPackage = Bukkit.getServer().getClass().getPackage().getName();
+
+        String version;
+        if (!craftBukkitPackage.contains(".v")) { // cb package not relocated (i.e. paper 1.20.5+)
+            // separating major and minor versions, example: 1.20.4-R0.1-SNAPSHOT -> major = 20, minor = 4
+            final String[] versionNumbers = Bukkit.getBukkitVersion().split("-")[0].split("\\.");
+            int major = Integer.parseInt(versionNumbers[1]);
+            int minor = Integer.parseInt(versionNumbers[2]);
+
+            if (major == 20 && (minor == 5 || minor == 6))
+                version = "1_20_R4";
+            else
+                throw new IllegalStateException("VoidTotem does not support bukkit server version \"" + Bukkit.getBukkitVersion() + "\"");
+        } else {
+            version = craftBukkitPackage.split("\\.")[3].substring(1);
+        }
+        return version;
     }
 
     private void loadMetrics() {
@@ -147,57 +159,5 @@ public final class VoidTotem extends JavaPlugin {
                 return "No custom item";
             return String.valueOf(item.enableRecipe);
         }));
-    }
-
-    public void loadRecipe() {
-        wrapper.removeRecipe(RECIPE_KEY);
-
-        if (Streams.stream(Bukkit.recipeIterator()).anyMatch(recipe ->
-                (recipe instanceof ShapelessRecipe && ((ShapelessRecipe) recipe).getKey().equals(RECIPE_KEY) ||
-                        (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(RECIPE_KEY))))) {
-            getLogger().warning(getMessage("old_recipe_not_removed"));
-            return;
-        }
-
-        ItemData itemData = Config.get().item;
-        if (itemData.customItem && itemData.enableRecipe && itemData.result.valid && itemData.recipe.valid) {
-            ItemStack result = itemData.result.getItemStack();
-            RecipeData recipeData = itemData.recipe;
-            if (!recipeData.shaped) {
-                ShapelessRecipe recipe = new ShapelessRecipe(RECIPE_KEY, result);
-                recipeData.shapelessIngredients.forEach(ingredient -> recipe.addIngredient(Material.getMaterial(ingredient.toUpperCase())));
-                Bukkit.addRecipe(recipe);
-            } else {
-                ShapedRecipe recipe = new ShapedRecipe(RECIPE_KEY, result);
-                String[] shape = new String[recipeData.shapedIngredients.size()];
-                Map<String, Character> ingredients = new HashMap<>();
-                for (int i = 0; i < recipeData.shapedIngredients.size(); i++) {
-                    StringBuilder sb = new StringBuilder();
-                    for (String str : recipeData.shapedIngredients.get(i).split("\\|")) {
-                        String ingredient = str.trim();
-                        Character character = ingredients.get(ingredient);
-                        if (character == null) {
-                            for (int c = 'a'; c <= 'z'; c++) {
-                                if (!ingredients.containsValue((char) c)) {
-                                    ingredients.put(ingredient, character = (char) c);
-                                    break;
-                                }
-                            }
-                        }
-                        if (character != null)
-                            sb.append(character);
-                    }
-                    shape[i] = sb.toString();
-                }
-                recipe.shape(shape);
-                ingredients.forEach((ingredient, c) -> recipe.setIngredient(c, Material.getMaterial(ingredient.toUpperCase())));
-
-                try {
-                    Bukkit.addRecipe(recipe);
-                } catch (IllegalStateException e) {
-                    getLogger().warning(getMessage("old_recipe_not_removed"));
-                }
-            }
-        }
     }
 }
