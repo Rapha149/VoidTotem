@@ -126,7 +126,7 @@ public class Config {
         comments.put("item.result.nbt", "The NBT string to apply to the item." +
                 "\nSet to \"{}\" to disable." +
                 "\nIf you want to include ' in your nbt string, you can escape them using ''" +
-                "\n\nPlease note that the default value only works for 1.20.5+" +
+                "\n\nPlease note that the default value only works for 1.21+" +
                 "\n\nIf you don't know how NBT works, see this tutorial: https://minecraft.fandom.com/wiki/Tutorials/Command_NBT_tags" +
                 "\n or use a /give generator and copy everything from { to }. Give command generator examples:" +
                 "\n - https://mcstacker.net (click on the \"/give\" button)" +
@@ -477,7 +477,7 @@ public class Config {
             public int count = 1;
             public String name = "&6Void &eTotem";
             public List<String> lore = Arrays.asList("&7Save yourself from the void!");
-            public String nbt = "{\"minecraft:enchantments\": {\"show_in_tooltip\": 0b, levels: {\"minecraft:unbreaking\": 1}}}";
+            public String nbt = "{\"enchantment_glint_override\": 1b}";
 
             public transient boolean valid = true;
             private transient ItemStack itemStack;

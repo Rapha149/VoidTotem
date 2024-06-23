@@ -13,7 +13,7 @@ If you are resurrected by the totem you will be teleported onto a nearby block w
 
 The default `config.yml` looks like this:
 ```yml
-# VoidTotem version 2.0.0
+# VoidTotem version 2.0.1
 # Github: https://github.com/Rapha149/VoidTotem
 # Spigot: https://www.spigotmc.org/resources/void-totem.99003/
 
@@ -197,13 +197,14 @@ item:
     # The NBT string to apply to the item.
     # Set to "{}" to disable.
     # If you want to include ' in your nbt string, you can escape them using ''
-    # "HideFlags: 1" which is given by default is used to hide the enchantments.
+    # 
+    # Please note that the default value only works for 1.21+
     # 
     # If you don't know how NBT works, see this tutorial: https://minecraft.fandom.com/wiki/Tutorials/Command_NBT_tags
     #  or use a /give generator and copy everything from { to }. Give command generator examples:
     #  - https://mcstacker.net (click on the "/give" button)
     #  - https://www.gamergeeks.net/apps/minecraft/give-command-generator
-    nbt: '{HideFlags: 1, Enchantments: [{id: "minecraft:unbreaking", lvl: 1}]}'
+    nbt: '{"enchantment_glint_override": 1b}'
 
   recipe:
     # Whether the recipe should be a shaped recipe.
