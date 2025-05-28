@@ -16,12 +16,12 @@ import org.bukkit.SoundGroup;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_21_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_21_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_21_R4.CraftServer;
+import org.bukkit.craftbukkit.v1_21_R4.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffectType;
 
-public class Wrapper1_21_R3 implements VersionWrapper {
+public class Wrapper1_21_R4 implements VersionWrapper {
 
     @Override
     public boolean verifyNBT(String nbt) {
@@ -37,9 +37,11 @@ public class Wrapper1_21_R3 implements VersionWrapper {
     public org.bukkit.inventory.ItemStack applyNBT(org.bukkit.inventory.ItemStack item, String nbt) {
         try {
             ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-            NBTTagCompound itemNBT = ((NBTTagCompound) nmsItem.b(VanillaRegistries.a()));
-            itemNBT.p("components").a(MojangsonParser.a(nbt));
-            return CraftItemStack.asBukkitCopy(ItemStack.a(VanillaRegistries.a(), itemNBT));
+            NBTTagCompound itemNBT = nmsItem.f() ? new NBTTagCompound() : ((NBTTagCompound) nmsItem.a(VanillaRegistries.a()));
+            NBTTagCompound components = itemNBT.n("components");
+            components.a(MojangsonParser.a(nbt));
+            itemNBT.a("components", components);
+            return CraftItemStack.asBukkitCopy(ItemStack.a(VanillaRegistries.a(), itemNBT).orElseThrow());
         } catch (CommandSyntaxException e) {
             throw new IllegalArgumentException("Can't read nbt string", e);
         }
@@ -49,7 +51,7 @@ public class Wrapper1_21_R3 implements VersionWrapper {
     public void removeRecipe(NamespacedKey key) {
         CraftingManager manager = ((CraftServer) Bukkit.getServer()).getServer().aI();
         MinecraftKey minecraftKey = MinecraftKey.a(key.getNamespace(), key.getKey());
-        ResourceKey<IRecipe<?>> resourceKey = ResourceKey.a(Registries.bk, minecraftKey);
+        ResourceKey<IRecipe<?>> resourceKey = ResourceKey.a(Registries.bv, minecraftKey);
         manager.removeRecipe(resourceKey);
     }
 

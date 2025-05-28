@@ -9,21 +9,30 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
-import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static de.rapha149.voidtotem.Messages.getMessage;
 
 public final class VoidTotem extends JavaPlugin {
+
+    private static final Map<String, String> VERSIONS;
+    private static final String NEWEST_VERSION = "1_21_R4";
+
+    static {
+        Map<String, String> versions = new HashMap<>();
+        versions.put("1.20.5", "1_20_R4");
+        versions.put("1.20.6", "1_20_R4");
+        versions.put("1.21.1", "1_21_R1");
+        versions.put("1.21.3", "1_21_R2");
+        versions.put("1.21.4", "1_21_R3");
+        versions.put("1.21.5", "1_21_R4");
+        VERSIONS = Collections.unmodifiableMap(versions);
+    }
 
     private static VoidTotem instance;
 
@@ -32,14 +41,16 @@ public final class VoidTotem extends JavaPlugin {
         instance = this;
         Util.LOGGER = getLogger();
 
-        String nmsVersion = getNMSVersion();
+        String craftBukkitPackage = Bukkit.getServer().getClass().getPackage().getName();
+        String nmsVersion = craftBukkitPackage.contains(".v") ? craftBukkitPackage.split("\\.")[3].substring(1) :
+                VERSIONS.getOrDefault(Bukkit.getBukkitVersion().split("-")[0], NEWEST_VERSION);
         try {
             Util.WRAPPER = (VersionWrapper) Class.forName(VersionWrapper.class.getPackage().getName() + ".Wrapper" + nmsVersion).getDeclaredConstructor().newInstance();
         } catch (IllegalAccessException | InstantiationException | NoSuchMethodException |
                  InvocationTargetException e) {
             throw new IllegalStateException("Failed to load support for server version \"" + nmsVersion + "\"");
         } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("VoidTotem does not fully support the server version \"" + nmsVersion + "\"");
+            throw new IllegalStateException("VoidTotem does not support the server version \"" + nmsVersion + "\"");
         }
 
         Messages.loadMessages();
@@ -55,15 +66,17 @@ public final class VoidTotem extends JavaPlugin {
         loadMetrics();
 
         if (Config.get().checkForUpdates) {
-            String version = Updates.getAvailableVersion();
-            if (version != null) {
-                if (version.isEmpty())
-                    getLogger().info(getMessage("plugin.up_to_date"));
-                else {
-                    for (String line : getMessage("plugin.outdated").split("\n"))
-                        getLogger().warning(line.replace("%version%", version).replace("%url%", Updates.SPIGOT_URL));
+            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                String version = Updates.getAvailableVersion();
+                if (version != null) {
+                    if (version.isEmpty())
+                        getLogger().info(getMessage("plugin.up_to_date"));
+                    else {
+                        for (String line : getMessage("plugin.outdated").split("\n"))
+                            getLogger().warning(line.replace("%version%", version).replace("%url%", Updates.SPIGOT_URL));
+                    }
                 }
-            }
+            });
         }
 
         Util.loadRecipe();
@@ -79,47 +92,6 @@ public final class VoidTotem extends JavaPlugin {
 
     public static VoidTotem getInstance() {
         return instance;
-    }
-
-    private String getNMSVersion() {
-        String craftBukkitPackage = Bukkit.getServer().getClass().getPackage().getName();
-        if (craftBukkitPackage.contains("v"))
-            return craftBukkitPackage.split("\\.")[3].substring(1);
-
-        // Get NMS Version from the bukkit version
-        String bukkitVersion = Bukkit.getBukkitVersion();
-
-        // Try to get NMS Version from online list (https://github.com/Rapha149/NMSVersions)
-        try {
-            HttpURLConnection conn = (HttpURLConnection) new URL("https://raw.githubusercontent.com/Rapha149/NMSVersions/main/nms-versions.json").openConnection();
-            conn.setRequestMethod("GET");
-            conn.connect();
-            if (conn.getResponseCode() / 100 != 2)
-                throw new IOException("Failed to access online NMS versions list: " + conn.getResponseCode());
-
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-                JSONObject json = new JSONObject(br.lines().collect(Collectors.joining()));
-                if (json.has(bukkitVersion))
-                    return json.getString(bukkitVersion);
-            }
-        } catch (IOException e) {
-            getLogger().warning("Can't access online NMS versions list, falling back to hardcoded NMS versions. These could be outdated.");
-        }
-
-        // separating major and minor versions, example: 1.20.4-R0.1-SNAPSHOT -> major = 20, minor = 4
-        final String[] versionNumbers = bukkitVersion.split("-")[0].split("\\.");
-        int major = Integer.parseInt(versionNumbers[1]);
-        int minor = versionNumbers.length > 2 ? Integer.parseInt(versionNumbers[2]) : 0;
-
-        if (major == 20 && minor >= 5) { // 1.20.5, 1.20.6
-            return "1_20_R4";
-        } else if (major == 21 && minor <= 1) { // 1.21, 1.21.1
-            return "1_21_R1";
-        } else if (major == 21 && (minor == 2 || minor == 3)) { // 1.21.2, 1.21.3
-            return "1_21_R2";
-        }
-
-        throw new IllegalStateException("VoiTtotem does not support bukkit server version \"" + bukkitVersion + "\"");
     }
 
     private void loadMetrics() {

@@ -13,7 +13,7 @@ If you are resurrected by the totem you will be teleported onto a nearby block w
 
 The default `config.yml` looks like this:
 ```yml
-# VoidTotem version 2.0.3
+# VoidTotem version 2.0.4
 # Github: https://github.com/Rapha149/VoidTotem
 # Spigot: https://www.spigotmc.org/resources/void-totem.99003/
 
